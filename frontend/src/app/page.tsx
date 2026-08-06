@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { AlertsPanel } from "@/components/AlertsPanel";
+import { HoldingsPanel } from "@/components/HoldingsPanel";
 import { IntentForm } from "@/components/IntentForm";
 import { PriceTicker } from "@/components/PriceTicker";
 import { RecommendationCard } from "@/components/RecommendationCard";
@@ -11,8 +12,10 @@ import type { IntentResponse } from "@/lib/types";
 export default function Home() {
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [result, setResult] = useState<IntentResponse | null>(null);
+  const [alertsRefreshToken, setAlertsRefreshToken] = useState(0);
 
   const handleAddressChange = useCallback((addr: string | null) => setWalletAddress(addr), []);
+  const handleHoldingsSaved = useCallback(() => setAlertsRefreshToken((t) => t + 1), []);
 
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-8 px-4 py-10">
@@ -33,7 +36,9 @@ export default function Home() {
 
       {result && <RecommendationCard result={result} />}
 
-      <AlertsPanel walletAddress={walletAddress} />
+      <HoldingsPanel walletAddress={walletAddress} onSaved={handleHoldingsSaved} />
+
+      <AlertsPanel walletAddress={walletAddress} refreshToken={alertsRefreshToken} />
 
       <footer className="pb-6 text-center text-xs text-neutral-600">
         Every price, yield, and recommendation above is either live (OpenRouter, Flare FTSO, DeFiLlama,

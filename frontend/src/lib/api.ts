@@ -1,4 +1,4 @@
-import type { AlertsResponse, AssetHolding, IntentResponse } from "./types";
+import type { AlertsResponse, AssetHolding, IntentResponse, PortfolioResponse } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -34,4 +34,18 @@ export function getPrices(
   symbols = "FLR/USD,BTC/USD,ETH/USD"
 ): Promise<{ feeds: IntentResponse["context"]["prices"] }> {
   return apiFetch(`/api/prices?symbols=${encodeURIComponent(symbols)}`);
+}
+
+export function savePortfolio(
+  walletAddress: string,
+  holdings: AssetHolding[]
+): Promise<PortfolioResponse> {
+  return apiFetch<PortfolioResponse>("/api/portfolio", {
+    method: "POST",
+    body: JSON.stringify({ walletAddress, holdings }),
+  });
+}
+
+export function getPortfolio(walletAddress: string): Promise<PortfolioResponse> {
+  return apiFetch<PortfolioResponse>(`/api/portfolio/${encodeURIComponent(walletAddress)}`);
 }

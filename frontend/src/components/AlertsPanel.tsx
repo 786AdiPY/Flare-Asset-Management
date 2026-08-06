@@ -11,7 +11,13 @@ const SEVERITY_BORDER: Record<string, string> = {
   high: "border-warn",
 };
 
-export function AlertsPanel({ walletAddress }: { walletAddress: string | null }) {
+export function AlertsPanel({
+  walletAddress,
+  refreshToken = 0,
+}: {
+  walletAddress: string | null;
+  refreshToken?: number;
+}) {
   const [alerts, setAlerts] = useState<OpportunityAlert[]>([]);
   const [simulated, setSimulated] = useState(false);
   const [reason, setReason] = useState<string | null | undefined>(null);
@@ -38,7 +44,7 @@ export function AlertsPanel({ walletAddress }: { walletAddress: string | null })
       cancelled = true;
       clearInterval(interval);
     };
-  }, [walletAddress]);
+  }, [walletAddress, refreshToken]);
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-panel p-5">
@@ -50,7 +56,7 @@ export function AlertsPanel({ walletAddress }: { walletAddress: string | null })
       {error && <p className="text-sm text-danger">{error}</p>}
       {!error && alerts.length === 0 && (
         <p className="text-sm text-neutral-500">
-          No better opportunities right now — the demo portfolio is already well-placed.
+          No better opportunities right now for {walletAddress ? "your saved holdings" : "the demo portfolio"}.
         </p>
       )}
 

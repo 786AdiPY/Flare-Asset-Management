@@ -3,6 +3,14 @@ export interface AssetHolding {
   chain: string;
   amount: number;
   isTokenized?: boolean;
+  currentApy?: number | null;
+  currentProtocol?: string | null;
+}
+
+export interface PortfolioResponse {
+  walletAddress: string;
+  holdings: AssetHolding[];
+  store: "supabase" | "in-memory";
 }
 
 export interface YieldOpportunity {

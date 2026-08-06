@@ -3,22 +3,43 @@ from __future__ import annotations
 from fastapi import APIRouter, Query
 
 from ..models.schemas import AlertsResponse
-from ..services import defillama, openrouter, rule_engine
+from ..services import defillama, openrouter, rule_engine, supabase_client
 from ..services.simulation import safe_call
 
 router = APIRouter()
 
-# TODO: replace with a real position lookup (Supabase `portfolios` table, keyed
-# by `wallet`) once a wallet has actually saved holdings via POST /api/portfolio.
+# Shown when no wallet is connected, or a connected wallet hasn't saved any
+# holdings yet via POST /api/portfolio — keeps the panel demoable either way.
 _DEMO_PORTFOLIO = [
     {"symbol": "USDC", "chain": "Ethereum", "amount": 10000, "currentApy": 3.2, "currentProtocol": "Aave"},
     {"symbol": "FLR", "chain": "Flare", "amount": 50000, "currentApy": 4.5, "currentProtocol": "Kinetic"},
 ]
 
 
+async def _load_portfolio(wallet: str | None) -> list[dict]:
+    if not wallet:
+        return _DEMO_PORTFOLIO
+
+    saved = await supabase_client.get_portfolio(wallet)
+    holdings = saved.get("holdings") or []
+    if not holdings:
+        return _DEMO_PORTFOLIO
+
+    return [
+        {
+            "symbol": h["symbol"],
+            "chain": h["chain"],
+            "amount": h["amount"],
+            "currentApy": h.get("currentApy") if h.get("currentApy") is not None else 0.0,
+            "currentProtocol": h.get("currentProtocol") or "Idle (not yet deployed)",
+        }
+        for h in holdings
+    ]
+
+
 @router.get("/alerts", response_model=AlertsResponse)
 async def get_alerts(wallet: str | None = Query(default=None)) -> AlertsResponse:
-    portfolio = _DEMO_PORTFOLIO
+    portfolio = await _load_portfolio(wallet)
 
     alerts: list[dict] = []
     any_simulated = False

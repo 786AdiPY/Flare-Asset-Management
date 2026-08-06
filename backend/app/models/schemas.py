@@ -10,6 +10,11 @@ class AssetHolding(BaseModel):
     chain: str
     amount: float
     isTokenized: bool = False
+    # Where/how this holding currently earns yield, if anywhere — used by
+    # Smart Opportunity Alerts to compute the delta against better options.
+    # Unset means "idle" (0% baseline), so any qualifying opportunity alerts.
+    currentApy: Optional[float] = None
+    currentProtocol: Optional[str] = None
 
 
 class IntentRequest(BaseModel):
