@@ -1,4 +1,14 @@
-import type { AlertsResponse, AssetHolding, IntentResponse, PortfolioResponse } from "./types";
+import type {
+  AlertsResponse,
+  AssetHolding,
+  ConversationTurn,
+  IntentResponse,
+  PortfolioResponse,
+  VerifyJob,
+  WalletBalanceResponse,
+  YieldHistoryResponse,
+  YieldsResponse,
+} from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 
@@ -18,6 +28,7 @@ export function postIntent(payload: {
   intent: string;
   walletAddress?: string | null;
   portfolio?: AssetHolding[];
+  history?: ConversationTurn[];
 }): Promise<IntentResponse> {
   return apiFetch<IntentResponse>("/api/intent", {
     method: "POST",
@@ -48,4 +59,36 @@ export function savePortfolio(
 
 export function getPortfolio(walletAddress: string): Promise<PortfolioResponse> {
   return apiFetch<PortfolioResponse>(`/api/portfolio/${encodeURIComponent(walletAddress)}`);
+}
+
+export function getAllPrices(): Promise<{ feeds: IntentResponse["context"]["prices"] }> {
+  return apiFetch("/api/prices/all");
+}
+
+export function getWalletBalance(address: string): Promise<WalletBalanceResponse> {
+  return apiFetch<WalletBalanceResponse>(`/api/wallet/${encodeURIComponent(address)}/balance`);
+}
+
+export function getYields(opts: { keywords?: string; chain?: string; limit?: number } = {}): Promise<YieldsResponse> {
+  const params = new URLSearchParams();
+  if (opts.keywords) params.set("keywords", opts.keywords);
+  if (opts.chain) params.set("chain", opts.chain);
+  if (opts.limit) params.set("limit", String(opts.limit));
+  const qs = params.toString();
+  return apiFetch<YieldsResponse>(`/api/yields${qs ? `?${qs}` : ""}`);
+}
+
+export function getYieldHistory(poolId: string, days = 30): Promise<YieldHistoryResponse> {
+  return apiFetch<YieldHistoryResponse>(`/api/yields/${encodeURIComponent(poolId)}/history?days=${days}`);
+}
+
+export function postVerify(sourceChain: string, txHash: string): Promise<VerifyJob> {
+  return apiFetch<VerifyJob>("/api/verify", {
+    method: "POST",
+    body: JSON.stringify({ sourceChain, txHash }),
+  });
+}
+
+export function getVerifyJob(jobId: string): Promise<VerifyJob> {
+  return apiFetch<VerifyJob>(`/api/verify/${encodeURIComponent(jobId)}`);
 }

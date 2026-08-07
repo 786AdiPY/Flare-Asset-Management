@@ -5,45 +5,75 @@ from __future__ import annotations
 # external dependencies — clearly labeled as simulated by the caller (`safe_call`).
 
 
+def _risk_from_tvl(tvl_usd: float | None) -> str:
+    if (tvl_usd or 0) >= 5_000_000:
+        return "low"
+    if (tvl_usd or 0) >= 1_000_000:
+        return "medium"
+    return "high"
+
+
 def simulate_recommendation(intent: str, context: dict) -> dict:
-    top_yields = context.get("topYields") or []
-    best = top_yields[0] if top_yields else None
+    top_yields = (context.get("topYields") or [])[:3]
 
-    if best:
-        strategy = f"Supply {best['symbol']} into {best['project']} on {best['chain']}"
-        protocol = best["project"]
-        chain = best["chain"]
-        apy = best.get("apy")
-        cited = [best["poolId"]]
-    else:
-        strategy = "Hold and monitor — no qualifying opportunity found yet"
-        protocol = "n/a"
-        chain = "Flare"
-        apy = None
-        cited = []
-
-    return {
-        "recommendation": {
-            "strategy": strategy,
-            "chain": chain,
-            "protocol": protocol,
-            "estimatedApy": apy,
-            "estimatedFeesPct": 0.3,
-            "riskLevel": "medium",
-            "steps": [
-                f'Review intent: "{intent}"',
-                f"Bridge/allocate the relevant asset to {chain} if needed",
-                f"Deposit into {protocol}",
-                "Monitor the position via Smart Opportunity Alerts",
-            ],
-            "explanation": (
-                "This is a simulated recommendation (no live OPENROUTER_API_KEY configured, "
-                "or the live call failed) generated from the highest-APY qualifying pool in "
-                "the current DeFiLlama snapshot for your intent."
-            ),
-            "citedOpportunities": cited,
+    if not top_yields:
+        return {
+            "recommendations": [
+                {
+                    "rank": 1,
+                    "strategy": "Hold and monitor — no qualifying opportunity found yet",
+                    "chain": "Flare",
+                    "protocol": "n/a",
+                    "estimatedApy": None,
+                    "estimatedFeesPct": None,
+                    "riskLevel": "medium",
+                    "steps": [f'Review intent: "{intent}"', "Check back once market data refreshes"],
+                    "explanation": (
+                        "This is a simulated recommendation (no live OPENROUTER_API_KEY configured, "
+                        "or the live call failed), and no qualifying DeFiLlama pool was found for "
+                        "this intent's keywords."
+                    ),
+                    "citedOpportunities": [],
+                    "comparisonNote": None,
+                }
+            ]
         }
-    }
+
+    recommendations = []
+    top_apy = top_yields[0].get("apy") or 0
+    for i, opp in enumerate(top_yields):
+        rank = i + 1
+        apy = opp.get("apy")
+        comparison_note = None
+        if rank > 1:
+            delta = top_apy - (apy or 0)
+            comparison_note = f"Offers {delta:.1f} pts lower APY than the top pick, based on the current DeFiLlama snapshot."
+        recommendations.append(
+            {
+                "rank": rank,
+                "strategy": f"Supply {opp['symbol']} into {opp['project']} on {opp['chain']}",
+                "chain": opp["chain"],
+                "protocol": opp["project"],
+                "estimatedApy": apy,
+                "estimatedFeesPct": 0.3,
+                "riskLevel": _risk_from_tvl(opp.get("tvlUsd")),
+                "steps": [
+                    f'Review intent: "{intent}"',
+                    f"Bridge/allocate the relevant asset to {opp['chain']} if needed",
+                    f"Deposit into {opp['project']}",
+                    "Monitor the position via Smart Opportunity Alerts",
+                ],
+                "explanation": (
+                    "This is a simulated recommendation (no live OPENROUTER_API_KEY configured, "
+                    "or the live call failed) generated from the current DeFiLlama snapshot for "
+                    "your intent."
+                ),
+                "citedOpportunities": [opp["poolId"]],
+                "comparisonNote": comparison_note,
+            }
+        )
+
+    return {"recommendations": recommendations}
 
 
 def simulate_alert_explanation(position: dict, opportunity: dict) -> str:

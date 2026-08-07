@@ -35,6 +35,7 @@ export interface FeedValue {
 }
 
 export interface Recommendation {
+  rank: number;
   strategy: string;
   chain: string;
   protocol: string;
@@ -44,10 +45,16 @@ export interface Recommendation {
   steps: string[];
   explanation: string;
   citedOpportunities: string[];
+  comparisonNote?: string | null;
+}
+
+export interface ConversationTurn {
+  role: "user" | "assistant";
+  content: string;
 }
 
 export interface IntentResponse {
-  recommendation: Recommendation;
+  recommendations: Recommendation[];
   context: {
     prices: FeedValue[];
     topYields: YieldOpportunity[];
@@ -70,6 +77,46 @@ export interface OpportunityAlert {
 
 export interface AlertsResponse {
   alerts: OpportunityAlert[];
+  simulated: boolean;
+  simulationReason?: string | null;
+}
+
+export interface WalletBalanceResponse {
+  address: string;
+  chain: string;
+  symbol: string;
+  balance: number | null;
+  simulated: boolean;
+  simulationReason?: string | null;
+}
+
+export interface YieldHistoryPoint {
+  date: string;
+  apy: number | null;
+  tvlUsd: number | null;
+}
+
+export interface YieldHistoryResponse {
+  poolId: string;
+  points: YieldHistoryPoint[];
+  simulated: boolean;
+  simulationReason?: string | null;
+}
+
+export interface YieldsResponse {
+  opportunities: YieldOpportunity[];
+  simulated: boolean;
+  simulationReason?: string | null;
+}
+
+export interface VerifyJob {
+  id: string;
+  sourceChain: string;
+  txHash: string;
+  status: "collecting" | "voting" | "finalized";
+  merkleProof: string | null;
+  votingRoundId: number | null;
+  createdAt: number;
   simulated: boolean;
   simulationReason?: string | null;
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAlerts } from "@/lib/api";
+import { useWalletContext } from "@/lib/walletContext";
 import type { OpportunityAlert } from "@/lib/types";
 import { SimulatedBadge } from "./SimulatedBadge";
 
@@ -11,13 +12,8 @@ const SEVERITY_BORDER: Record<string, string> = {
   high: "border-warn",
 };
 
-export function AlertsPanel({
-  walletAddress,
-  refreshToken = 0,
-}: {
-  walletAddress: string | null;
-  refreshToken?: number;
-}) {
+export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
+  const { walletAddress } = useWalletContext();
   const [alerts, setAlerts] = useState<OpportunityAlert[]>([]);
   const [simulated, setSimulated] = useState(false);
   const [reason, setReason] = useState<string | null | undefined>(null);

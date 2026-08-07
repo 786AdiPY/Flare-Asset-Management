@@ -1,26 +1,25 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { getPortfolio, savePortfolio } from "@/lib/api";
-import type { AssetHolding } from "@/lib/types";
+import { getPortfolio, getWalletBalance, savePortfolio } from "@/lib/api";
+import { useWalletContext } from "@/lib/walletContext";
+import type { AssetHolding, WalletBalanceResponse } from "@/lib/types";
+import { SimulatedBadge } from "./SimulatedBadge";
 
 const EMPTY_FORM = { symbol: "", chain: "", amount: "", currentProtocol: "", currentApy: "" };
 
-export function HoldingsPanel({
-  walletAddress,
-  onSaved,
-}: {
-  walletAddress: string | null;
-  onSaved: () => void;
-}) {
+export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
+  const { walletAddress } = useWalletContext();
   const [holdings, setHoldings] = useState<AssetHolding[]>([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [detected, setDetected] = useState<WalletBalanceResponse | null>(null);
 
   useEffect(() => {
     if (!walletAddress) {
       setHoldings([]);
+      setDetected(null);
       return;
     }
     let cancelled = false;
@@ -31,10 +30,26 @@ export function HoldingsPanel({
       .catch(() => {
         if (!cancelled) setHoldings([]);
       });
+    getWalletBalance(walletAddress)
+      .then((res) => {
+        if (!cancelled) setDetected(res);
+      })
+      .catch(() => {
+        if (!cancelled) setDetected(null);
+      });
     return () => {
       cancelled = true;
     };
   }, [walletAddress]);
+
+  function addDetectedBalance() {
+    if (!detected || detected.balance == null) return;
+    setHoldings((prev) => [
+      ...prev,
+      { symbol: detected.symbol, chain: detected.chain, amount: detected.balance as number },
+    ]);
+    setDetected(null);
+  }
 
   function addHolding(e: FormEvent) {
     e.preventDefault();
@@ -82,6 +97,23 @@ export function HoldingsPanel({
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border bg-panel p-5">
       <h3 className="text-base font-semibold">Your Holdings</h3>
+
+      {detected && detected.balance != null && detected.balance > 0 && (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-accent2/40 bg-accent2/10 px-3 py-2 text-sm">
+          <span>
+            Detected {detected.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })}{" "}
+            {detected.symbol} on {detected.chain} in your connected wallet
+          </span>
+          <SimulatedBadge simulated={detected.simulated} reason={detected.simulationReason} />
+          <button
+            type="button"
+            onClick={addDetectedBalance}
+            className="ml-auto rounded-lg border border-accent2 px-2 py-1 text-xs text-accent2 hover:bg-accent2/10"
+          >
+            Add to holdings
+          </button>
+        </div>
+      )}
 
       {holdings.length > 0 && (
         <ul className="flex flex-col gap-2">

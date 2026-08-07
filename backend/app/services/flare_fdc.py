@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import time
+import uuid
 
 # The Flare Data Connector's real attestation flow is multi-phase and stateful:
 #   1. Submit an attestation request tx during a ~90s collection window, including
@@ -11,25 +12,51 @@ import time
 #      from the Data Availability Layer and submit/consume it on-chain.
 # See https://dev.flare.network/fdc/overview and https://dev.flare.network/fdc/guides/fdc-by-hand
 #
-# That flow needs a live source-chain tx, a funded attestation-request account, and
-# polling across multiple external services — out of scope for this scaffold. This
-# stub always raises so callers go through `safe_call` and land on the simulated
-# attestation below, keeping the "cross-chain verification" step demoable end to end.
+# Actually driving that flow needs a live source-chain tx, a funded attestation-
+# request account, and polling across multiple external verifier services — out
+# of scope for this scaffold. What's implemented below is a *phase-accurate*
+# local simulation: it mirrors FDC's real timing (90s collection window, then a
+# voting/finalization window) so the UI shows a believable pending -> verified
+# progression, but no external verifier or DA Layer is ever actually contacted.
+# `VerifyJob.simulated` is always True for that reason.
+
+_COLLECTING_SECONDS = 90
+_VOTING_SECONDS = 30
+
+_jobs: dict[str, dict] = {}
 
 
-async def request_attestation(source_chain: str, tx_hash: str) -> dict:
-    raise NotImplementedError(
-        "Flare FDC live attestation is not implemented in this scaffold — "
-        "see comments in flare_fdc.py for the real request/proof flow."
-    )
-
-
-def simulate_attestation(source_chain: str, tx_hash: str) -> dict:
-    digest = hashlib.sha256(f"{source_chain}:{tx_hash}".encode()).hexdigest()
-    return {
+def create_job(source_chain: str, tx_hash: str) -> dict:
+    job_id = uuid.uuid4().hex
+    job = {
+        "id": job_id,
         "sourceChain": source_chain,
         "txHash": tx_hash,
-        "verified": True,
-        "merkleProof": f"0x{digest}",
-        "votingRoundId": int(time.time()) // 90,
+        "createdAt": time.time(),
     }
+    _jobs[job_id] = job
+    return _compute_status(job)
+
+
+def get_job(job_id: str) -> dict:
+    job = _jobs.get(job_id)
+    if job is None:
+        raise KeyError(f"no such attestation job: {job_id}")
+    return _compute_status(job)
+
+
+def _compute_status(job: dict) -> dict:
+    elapsed = time.time() - job["createdAt"]
+    if elapsed < _COLLECTING_SECONDS:
+        status = "collecting"
+    elif elapsed < _COLLECTING_SECONDS + _VOTING_SECONDS:
+        status = "voting"
+    else:
+        status = "finalized"
+
+    result = {**job, "status": status, "merkleProof": None, "votingRoundId": None}
+    if status == "finalized":
+        digest = hashlib.sha256(f"{job['sourceChain']}:{job['txHash']}:{job['id']}".encode()).hexdigest()
+        result["merkleProof"] = f"0x{digest}"
+        result["votingRoundId"] = int(job["createdAt"]) // _COLLECTING_SECONDS
+    return result

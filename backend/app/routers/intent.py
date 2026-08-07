@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter
 
 from ..models.schemas import IntentRequest, IntentResponse
@@ -35,27 +37,33 @@ def _extract_keywords(intent: str) -> list[str]:
 async def post_intent(req: IntentRequest) -> IntentResponse:
     keywords = [h.symbol for h in req.portfolio] or _extract_keywords(req.intent)
 
-    yields_result = await safe_call(
-        lambda: defillama.get_relevant_yield_opportunities(keywords),
-        lambda: defillama.simulate_yield_opportunities(keywords),
-        label="defillama.yields",
-    )
-
-    price_results = []
-    any_price_simulated = False
-    for sym in _PRICE_SYMBOLS:
-        r = await safe_call(
-            lambda sym=sym: flare_ftso.get_feed(sym),
-            lambda sym=sym: flare_ftso.simulate_feed(sym),
+    async def _fetch_price(sym: str):
+        return await safe_call(
+            lambda: flare_ftso.get_feed(sym),
+            lambda: flare_ftso.simulate_feed(sym),
             label=f"ftso.{sym}",
         )
-        any_price_simulated = any_price_simulated or r.simulated
-        price_results.append({**r.data, "simulated": r.simulated, "simulationReason": r.reason})
+
+    yields_result, price_safe_results = await asyncio.gather(
+        safe_call(
+            lambda: defillama.get_relevant_yield_opportunities(keywords),
+            lambda: defillama.simulate_yield_opportunities(keywords),
+            label="defillama.yields",
+        ),
+        asyncio.gather(*(_fetch_price(sym) for sym in _PRICE_SYMBOLS)),
+    )
+
+    any_price_simulated = any(r.simulated for r in price_safe_results)
+    price_results = [
+        {**r.data, "simulated": r.simulated, "simulationReason": r.reason} for r in price_safe_results
+    ]
 
     context = {"topYields": yields_result.data, "prices": price_results}
 
+    history = [t.model_dump() for t in req.history]
+
     rec_result = await safe_call(
-        lambda: openrouter.call_openrouter(req.intent, context),
+        lambda: openrouter.call_openrouter(req.intent, context, history),
         lambda: rule_engine.simulate_recommendation(req.intent, context),
         label="openrouter.recommendation",
     )
@@ -64,7 +72,7 @@ async def post_intent(req: IntentRequest) -> IntentResponse:
     reason = rec_result.reason or yields_result.reason
 
     return IntentResponse(
-        recommendation=rec_result.data["recommendation"],
+        recommendations=rec_result.data["recommendations"],
         context={"prices": price_results, "topYields": yields_result.data},
         simulated=overall_simulated,
         simulationReason=reason,

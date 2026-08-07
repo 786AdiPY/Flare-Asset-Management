@@ -2,35 +2,31 @@
 
 import { useEffect } from "react";
 import { useWallet } from "@/lib/wallet";
+import { useWalletContext } from "@/lib/walletContext";
 
 function truncate(addr: string) {
   return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
 }
 
-export function WalletConnect({
-  walletAddress,
-  onAddressChange,
-}: {
-  walletAddress: string | null;
-  onAddressChange: (addr: string | null) => void;
-}) {
+export function WalletConnect() {
   const { address, connecting, error, connect, disconnect } = useWallet();
+  const { walletAddress, setWalletAddress } = useWalletContext();
 
   useEffect(() => {
     if (address && address !== walletAddress) {
-      onAddressChange(address);
+      setWalletAddress(address);
     }
-  }, [address, walletAddress, onAddressChange]);
+  }, [address, walletAddress, setWalletAddress]);
 
   const effectiveAddress = address ?? walletAddress;
 
   function handleDisconnect() {
     disconnect();
-    onAddressChange(null);
+    setWalletAddress(null);
   }
 
   function useDemoWallet() {
-    onAddressChange("0xDEM0000000000000000000000000000000FLARE");
+    setWalletAddress("0xDEM0000000000000000000000000000000FLARE");
   }
 
   return (

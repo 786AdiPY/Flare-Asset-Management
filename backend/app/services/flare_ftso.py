@@ -41,18 +41,48 @@ FTSO_V2_ABI = [
     }
 ]
 
-# Category 0x01 (Crypto) feed IDs: 1-byte category + ASCII symbol, right-padded
-# with zeros to 21 bytes total, per https://dev.flare.network/ftso/getting-started
-FEED_IDS = {
-    "FLR/USD": "0x01464c522f55534400000000000000000000000000",
-    "BTC/USD": "0x014254432f55534400000000000000000000000000",
-    "ETH/USD": "0x014554482f55534400000000000000000000000000",
-}
+def _build_feed_id(symbol: str, category: int = 1) -> str:
+    """1-byte category + ASCII symbol, right-padded with zeros to 21 bytes
+    total. Verified against https://dev.flare.network/ftso/getting-started
+    for FLR/USD, BTC/USD, ETH/USD — extended here to the rest of FTSOv2's
+    published category-1 (crypto) feed list. Not every symbol below is
+    guaranteed to be an active feed on every network; ones that revert
+    transparently fall back to simulated data via `safe_call`.
+    """
+    payload = bytes([category]) + symbol.encode("ascii")
+    payload = payload.ljust(21, b"\x00")
+    return "0x" + payload.hex()
+
+
+# Category 0x01 (Crypto) feeds.
+_CRYPTO_SYMBOLS = [
+    "FLR/USD",
+    "SGB/USD",
+    "BTC/USD",
+    "ETH/USD",
+    "XRP/USD",
+    "LTC/USD",
+    "DOGE/USD",
+    "ADA/USD",
+    "ALGO/USD",
+    "USDT/USD",
+    "USDC/USD",
+]
+
+FEED_IDS = {sym: _build_feed_id(sym) for sym in _CRYPTO_SYMBOLS}
 
 _BASELINE_VALUES = {
     "FLR/USD": 0.025,
+    "SGB/USD": 0.007,
     "BTC/USD": 65000.0,
     "ETH/USD": 3400.0,
+    "XRP/USD": 0.6,
+    "LTC/USD": 70.0,
+    "DOGE/USD": 0.15,
+    "ADA/USD": 0.45,
+    "ALGO/USD": 0.18,
+    "USDT/USD": 1.0,
+    "USDC/USD": 1.0,
 }
 
 _ftso_v2_address_cache: dict[str, str] = {}

@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import random
 import time
 
 import httpx
 
 _POOLS_URL = "https://yields.llama.fi/pools"
+_CHART_URL = "https://yields.llama.fi/chart"
 _CACHE_TTL_SECONDS = 300
 _cache: dict = {"fetched_at": 0.0, "pools": []}
 
@@ -105,3 +107,49 @@ def simulate_yield_opportunities(keywords: list[str]) -> list[dict]:
             "poolId": "simulated-aave-1",
         },
     ]
+
+
+async def get_pool_history(pool_id: str, days: int = 30) -> list[dict]:
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.get(f"{_CHART_URL}/{pool_id}")
+        resp.raise_for_status()
+        data = resp.json()
+
+    if data.get("status") != "success":
+        raise RuntimeError(f"DeFiLlama chart returned status={data.get('status')}")
+
+    points = data.get("data") or []
+    if not points:
+        raise RuntimeError("DeFiLlama chart returned no data points")
+
+    recent = points[-days:]
+    return [
+        {
+            "date": p["timestamp"][:10],
+            "apy": p.get("apy"),
+            "tvlUsd": p.get("tvlUsd"),
+        }
+        for p in recent
+    ]
+
+
+def simulate_pool_history(pool_id: str, days: int = 30) -> list[dict]:
+    rng = random.Random(pool_id)
+    base_apy = rng.uniform(3, 15)
+    base_tvl = rng.uniform(500_000, 5_000_000)
+    today = time.strftime("%Y-%m-%d")
+    points = []
+    for i in range(days):
+        # Deterministic pseudo-history ending "today" so the sparkline looks
+        # continuous across repeated calls within the same day.
+        offset = days - i
+        wobble = rng.uniform(-0.15, 0.15)
+        points.append(
+            {
+                "date": time.strftime("%Y-%m-%d", time.gmtime(time.time() - offset * 86400)),
+                "apy": round(max(base_apy * (1 + wobble), 0), 3),
+                "tvlUsd": round(max(base_tvl * (1 + wobble), 0), 2),
+            }
+        )
+    points[-1]["date"] = today
+    return points
