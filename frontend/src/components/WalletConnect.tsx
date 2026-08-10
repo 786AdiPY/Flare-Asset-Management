@@ -32,30 +32,34 @@ export function WalletConnect() {
   return (
     <div className="flex items-center gap-2">
       {effectiveAddress ? (
-        <>
-          <span className="rounded-full border border-border px-3 py-1 font-mono text-xs">
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent/15 px-3 py-1 font-mono-tech text-xs text-accent2 shadow-sm">
+            <span className="h-2 w-2 rounded-full bg-success animate-pulse" />
             {truncate(effectiveAddress)}
           </span>
-          <button onClick={handleDisconnect} className="text-xs text-neutral-500 hover:text-neutral-300">
+          <button
+            onClick={handleDisconnect}
+            className="rounded-full px-2.5 py-1 text-xs text-neutral-400 hover:text-white hover:bg-white/10 transition-all"
+          >
             Disconnect
           </button>
-        </>
+        </div>
       ) : (
-        <>
+        <div className="flex items-center gap-2">
           <button
             onClick={connect}
             disabled={connecting}
-            className="rounded-lg bg-accent2 px-3 py-1.5 text-xs font-medium text-ink disabled:opacity-50"
+            className="lifi-btn-primary px-4 py-1.5 text-xs font-semibold disabled:opacity-50"
           >
             {connecting ? "Connecting…" : "Connect MetaMask"}
           </button>
           <button
             onClick={useDemoWallet}
-            className="rounded-lg border border-border px-3 py-1.5 text-xs text-neutral-400 hover:border-accent2"
+            className="lifi-btn-secondary px-3 py-1.5 text-xs font-medium"
           >
-            Use Demo Wallet
+            Demo Wallet
           </button>
-        </>
+        </div>
       )}
       {error && <span className="text-xs text-danger">{error}</span>}
     </div>

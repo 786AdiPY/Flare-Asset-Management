@@ -41,6 +41,10 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
 
     recommendations = []
     top_apy = top_yields[0].get("apy") or 0
+    
+    # Objective badge strategy labeling
+    badge_tags = ["Highest Yield", "Lowest Risk", "Cheapest Route"]
+    
     for i, opp in enumerate(top_yields):
         rank = i + 1
         apy = opp.get("apy")
@@ -48,6 +52,10 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
         if rank > 1:
             delta = top_apy - (apy or 0)
             comparison_note = f"Offers {delta:.1f} pts lower APY than the top pick, based on the current DeFiLlama snapshot."
+        
+        badge = badge_tags[i] if i < len(badge_tags) else f"Option #{rank}"
+        symbol = opp.get("symbol", "USDC").split("-")[0]
+        
         recommendations.append(
             {
                 "rank": rank,
@@ -59,7 +67,7 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                 "riskLevel": _risk_from_tvl(opp.get("tvlUsd")),
                 "steps": [
                     f'Review intent: "{intent}"',
-                    f"Bridge/allocate the relevant asset to {opp['chain']} if needed",
+                    f"Bridge/swap {symbol} to {opp['chain']} via LI.FI",
                     f"Deposit into {opp['project']}",
                     "Monitor the position via Smart Opportunity Alerts",
                 ],
@@ -70,6 +78,12 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                 ),
                 "citedOpportunities": [opp["poolId"]],
                 "comparisonNote": comparison_note,
+                "badgeTag": badge,
+                "fromToken": symbol,
+                "toToken": symbol,
+                "fromChain": "Flare",
+                "toChain": opp["chain"] if opp["chain"] != "Flare" else "Flare",
+                "suggestedAmount": "100",
             }
         )
 

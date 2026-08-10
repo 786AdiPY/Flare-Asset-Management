@@ -29,16 +29,18 @@ Respond with STRICT JSON only, no prose outside the JSON, matching this shape:
       "steps": string[],
       "explanation": string,
       "citedOpportunities": string[],
-      "comparisonNote": null
+      "comparisonNote": null,
+      "badgeTag": string|null,
+      "fromToken": string|null,
+      "toToken": string|null,
+      "fromChain": string|null,
+      "toChain": string|null,
+      "suggestedAmount": string|null
     }
   ]
 }
 
-Return 2-3 recommendations ranked best-first (rank 1, 2, 3). For every recommendation
-EXCEPT rank 1, set "comparisonNote" to a one-sentence explanation of specifically why
-it ranked below the top pick (e.g. lower APY, higher risk, less liquidity) — rank 1
-must have comparisonNote: null. Base every recommendation only on protocols/opportunities
-present in the provided market context; do not invent one."""
+Return 2-3 recommendations ranked best-first (rank 1, 2, 3). Assign an objective badgeTag (e.g. "Highest Yield", "Lowest Risk", "Cheapest Route"). For every recommendation EXCEPT rank 1, set "comparisonNote" to a one-sentence explanation of specifically why it ranked below the top pick. Base every recommendation only on protocols/opportunities present in the provided market context; do not invent fake numerical data."""
 
 
 def _headers() -> dict[str, str]:

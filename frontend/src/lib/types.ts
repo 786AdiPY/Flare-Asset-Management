@@ -34,6 +34,15 @@ export interface FeedValue {
   simulationReason?: string | null;
 }
 
+export interface RecommendationVerifiedData {
+  guardrailPassed: boolean;
+  sourceAudit: string[];
+  verifiedApy?: number | null;
+  verifiedTvlUsd?: number | null;
+  verifiedRoute?: string;
+  verifiedTimestamp?: number;
+}
+
 export interface Recommendation {
   rank: number;
   strategy: string;
@@ -46,6 +55,13 @@ export interface Recommendation {
   explanation: string;
   citedOpportunities: string[];
   comparisonNote?: string | null;
+  badgeTag?: string | null;
+  fromToken?: string | null;
+  toToken?: string | null;
+  fromChain?: string | null;
+  toChain?: string | null;
+  suggestedAmount?: string | null;
+  verifiedData?: RecommendationVerifiedData | null;
 }
 
 export interface ConversationTurn {
@@ -61,6 +77,36 @@ export interface IntentResponse {
   };
   simulated: boolean;
   simulationReason?: string | null;
+}
+
+export interface TransactionRequest {
+  to: string;
+  data: string;
+  value: string;
+  gasLimit?: string;
+  chainId?: number;
+}
+
+export interface BridgeQuoteResponse {
+  tool: string;
+  estimatedToAmount: string;
+  estimatedDurationSeconds?: number | null;
+  feeCostsUsd?: number | null;
+  gasCostsUsd?: number | null;
+  slippagePct?: number | null;
+  approvalAddress?: string | null;
+  transactionRequest?: TransactionRequest | null;
+  simulated: boolean;
+  simulationReason?: string | null;
+}
+
+export type TxExecutionStep = "idle" | "preview" | "signing" | "broadcasting" | "confirmed" | "error";
+
+export interface TxStatus {
+  step: TxExecutionStep;
+  txHash?: string | null;
+  error?: string | null;
+  simulated?: boolean;
 }
 
 export interface OpportunityAlert {
@@ -117,6 +163,10 @@ export interface VerifyJob {
   merkleProof: string | null;
   votingRoundId: number | null;
   createdAt: number;
+  fdcHubAddress?: string | null;
+  verificationContract?: string | null;
+  requestFeeWei?: string | null;
+  proofStatus?: string | null;
   simulated: boolean;
   simulationReason?: string | null;
 }

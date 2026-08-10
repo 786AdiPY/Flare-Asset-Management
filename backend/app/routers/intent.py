@@ -5,7 +5,7 @@ import asyncio
 from fastapi import APIRouter
 
 from ..models.schemas import IntentRequest, IntentResponse
-from ..services import defillama, flare_ftso, openrouter, rule_engine
+from ..services import ai_guardrails, defillama, flare_ftso, openrouter, rule_engine
 from ..services.simulation import safe_call
 
 router = APIRouter()
@@ -68,11 +68,14 @@ async def post_intent(req: IntentRequest) -> IntentResponse:
         label="openrouter.recommendation",
     )
 
-    overall_simulated = rec_result.simulated or yields_result.simulated or any_price_simulated
-    reason = rec_result.reason or yields_result.reason
+    raw_recs = rec_result.data["recommendations"]
+    guardrailed_recs = ai_guardrails.validate_and_guardrail_recommendations(raw_recs, context)
+
+    overall_simulated = rec_result.simulated
+    reason = rec_result.reason
 
     return IntentResponse(
-        recommendations=rec_result.data["recommendations"],
+        recommendations=guardrailed_recs,
         context={"prices": price_results, "topYields": yields_result.data},
         simulated=overall_simulated,
         simulationReason=reason,

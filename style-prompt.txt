@@ -1,0 +1,524 @@
+# Full Visual Restyle — Replace This App's Design Language
+
+You are re-skinning an existing application so that it looks and FEELS like https://li.fi/.
+This is NOT a colour swap. Replace the entire design language — aesthetic direction, surface treatment, depth, effects, motion, and interaction feedback — across EVERY page, route, layout and component.
+
+## Target Aesthetic
+Target vibe: **gradient-rich, soft-rounded, high-saturation, technical-mono, editorial-serif, bold-display-type**.
+The source design reads as: gradient-rich, soft-rounded, high-saturation, technical-mono, editorial-serif, bold-display-type. It mixes light and dark surfaces. Generously rounded corners (~173px average, up to 24px). Subtle elevation using 2 shadow level(s). Motion: snappy transitions (~125ms average) using cubic-bezier(.44,0,.56,1).
+
+### Step 0 — Remove the current aesthetic first (mandatory)
+Before applying anything below, strip the app's existing visual identity so the old vibe cannot bleed through:
+- Delete or overwrite old theme values in the global stylesheet (`src/index.css`) and `tailwind.config.ts`.
+- Remove hardcoded colour utilities (`bg-white`, `text-black`, `bg-blue-500`, `text-[#hex]`) and replace them with semantic tokens.
+- Remove decorative treatments that belong to the OLD style but not the target (e.g. old textures, ornamental borders, retro filters, mismatched display fonts) unless they also appear in the spec below.
+- Keep all layout structure, copy, routes and functionality exactly as-is. Only the visual language changes.
+
+## Shadcn Design Tokens (PRIMARY OVERRIDE — apply first)
+Overwrite the HSL values in src/index.css :root (and .dark if present) with EXACTLY these tokens. Do NOT keep the old values. These map to Tailwind's --primary / --background / --accent / --border etc. and cascade to every component that uses hsl(var(--token)).
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 0%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 0%;
+  --primary: 236 73% 56%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 0%;
+  --muted: 0 0% 100%;
+  --muted-foreground: 0 0% 0%;
+  --accent: 240 100% 47%;
+  --accent-foreground: 0 0% 98%;
+  --border: 240 6% 90%;
+  --input: 240 6% 90%;
+  --ring: 236 73% 56%;
+  --radius: 8px;
+}
+```
+If tailwind.config.ts is missing the semantic color mappings, add them:
+```ts
+// tailwind.config.ts (extend theme)
+theme: {
+  extend: {
+    colors: {
+      background: 'hsl(var(--background))',
+      foreground: 'hsl(var(--foreground))',
+      primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+      secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+      muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+      accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+      card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+      border: 'hsl(var(--border))',
+    },
+    borderRadius: {
+      lg: 'var(--radius)',
+      md: 'calc(var(--radius) - 2px)',
+      sm: 'calc(var(--radius) - 4px)',
+    },
+  },
+}
+```
+After updating tokens, audit components for hardcoded Tailwind color classes (bg-white, text-black, bg-blue-500, text-[#hex], etc.) and replace them with the semantic equivalents (bg-background, text-foreground, bg-primary, text-primary-foreground) so the new palette actually takes effect.
+
+## Colors
+Use this color palette throughout the site:
+Palette: #000000, #0000ee, #1a1a1a, #616161, #ffffff, #646460, #666666, #374151, #1f2937, #f9fafb, #111827, rgb(153, 153, 153), #6b7280, #3f49e1, #09f, #999, #99999940, #666, #4b5563, #f6f3f2, #f5b5ff, #ffffffb3, rgb(249, 250, 251), #1a1a1a21, #eb3131, #4ef263, #ffdc42, #453f3d, #1a1615, #737368
+Gradients: linear-gradient(117deg,#ffffff26 40%,#3f49e126 100%) | linear-gradient(#fff 0% 72.1938%,#f6f3f2 100%)
+
+## Typography
+Font families: sans-serif, Figtree, "Figtree Placeholder", sans-serif, "JetBrains Mono", "JetBrains Mono Placeholder", sans-serif, Inter, "Inter Placeholder", sans-serif, Figtree, Inter, JetBrains Mono, Figtree Placeholder, Inter Placeholder, JetBrains Mono Placeholder
+Font sizes: 12px, 16px, 14px, 48px, 24px, 18px, 64px, 21px, 60px, 36px, 26px, var(--font-size), var(--framer-font-size), var(--framer-link-font-size,var(--framer-font-size)), var(--framer-link-hover-font-size,var(--framer-link-font-size,var(--framer-font-size))), var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size))), calc(var(--framer-blockquote-font-size,var(--framer-font-size,16px))*var(--framer-font-size-scale,1)), calc(var(--framer-link-hover-font-size,var(--framer-blockquote-font-size,var(--framer-font-size,16px)))*var(--framer-font-size-scale,1)), calc(var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size,16px)))*var(--framer-font-size-scale,1)), calc(var(--framer-link-hover-font-size,var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size,16px))))*var(--framer-font-size-scale,1))
+Font weights: 600, 900, 700, 400, 500, min(calc(var(--framer-font-weight-increase,0) + var(--font-weight,400)),900), var(--framer-font-weight), var(--framer-link-font-weight,var(--framer-font-weight)), var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-font-weight))), var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight))), var(--framer-font-weight-preview,var(--framer-blockquote-font-weight,var(--framer-font-weight,400))), var(--framer-blockquote-font-weight-bold,var(--framer-font-weight-bold,bolder)), var(--framer-blockquote-font-weight-italic,var(--framer-font-weight-italic)), var(--framer-blockquote-font-weight-bold-italic,var(--framer-font-weight-bold-italic,bolder)), var(--framer-blockquote-font-weight,var(--framer-code-font-weight,var(--framer-font-weight,400))), var(--framer-font-weight-preview,var(--framer-link-font-weight,var(--framer-blockquote-font-weight,var(--framer-font-weight,400)))), var(--framer-font-weight-preview,var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-blockquote-font-weight,var(--framer-font-weight,400))))), var(--framer-font-weight-preview,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400)))), var(--framer-code-font-weight,var(--framer-font-weight,400)), var(--framer-font-weight-preview,var(--framer-link-hover-font-weight,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400))))), var(--framer-font-weight,400), var(--framer-link-font-weight,var(--framer-font-weight,400)), var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400))), var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400))), var(--framer-link-hover-font-weight,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400)))), bolder, var(--framer-input-font-weight)
+Line heights: var(--line-height), var(--framer-line-height), var(--framer-blockquote-line-height,var(--framer-line-height,1.2em)), 1.2em, var(--framer-line-height,1.2em), 20px, 26px, 46px, 40px, 64px, 58px, 48px, 28px, 24px, 44px
+Letter spacings: var(--letter-spacing), var(--framer-letter-spacing), var(--framer-blockquote-letter-spacing,var(--framer-letter-spacing,0)), 0, var(--framer-letter-spacing,0), 0em, -2px, .02em, -1px, var(--framer-input-font-letter-spacing)
+
+## Button Styles
+Apply these button styles to all buttons and CTAs:
+  body,input,textarea,select,button: fontSize: 12px; fontFamily: sans-serif
+  [data-reset=button]: backgroundColor: 0 0; padding: 0
+
+## Shadows
+Use these box-shadow values:
+  - var(--framer-input-box-shadow)
+  - var(--framer-input-focused-box-shadow,var(--framer-input-box-shadow))
+
+## Borders
+Border radii: 8px, 24px, 999px, 2px, 6px, 0px 0px 64px, var(--framer-blockquote-text-background-radius,var(--framer-text-background-radius,initial)), var(--framer-link-text-background-radius,initial), var(--framer-link-hover-text-background-radius,var(--framer-link-text-background-radius,var(--framer-text-background-radius,initial))), var(--framer-link-current-text-background-radius,var(--framer-link-text-background-radius,initial)), var(--framer-link-hover-text-background-radius,var(--framer-link-current-text-background-radius,var(--framer-link-text-background-radius,initial))), 1px
+Border styles: 1px solid #99999940
+
+## Spacing
+Use these spacing values for padding, margin, and gap:
+10px, 8px, 32px, 20px, 24px, 72px, 12px, 12px 0, 16px, var(--framer-input-padding), 100px 0, 40px, 10px 10px 10px 14px, 64px, 36px, unset, 12px 32px, 0 16px, 64px 0, 60px
+
+## Backgrounds
+Background colors: #ffffff, #3f49e1, #1a1a1a, #000000, #f5b5ff, #fff3c2, #0000001a, #ddd, #9999991a
+Background gradients: linear-gradient(117deg,#ffffff26 40%,#3f49e126 100%) | linear-gradient(#fff 0% 72.1938%,#f6f3f2 100%)
+
+## Motion / Animation
+Durations: .1s, .15s
+Easings: cubic-bezier(.44,0,.56,1)
+Common transitions: color .1s cubic-bezier(.44,0,.56,1) | var(--framer-input-focused-transition) | color .15s
+
+## Design Vibe Directives
+Colour scheme: mixed. Corners: Generously rounded corners (~173px average, up to 24px). Depth: Subtle elevation using 2 shadow level(s). Motion: snappy transitions (~125ms average) using cubic-bezier(.44,0,.56,1).
+Signals extracted from the source:
+  - 4 gradients across backgrounds and accents.
+  - 5 highly saturated colours in the palette.
+Every new or existing component (nav, hero, cards, tables, modals, forms, toasts, empty states, footers) must obey this vibe — not just the landing page.
+
+## Surface Effects (reproduce these exactly)
+Filters (images, icons, decorative blobs): contrast(.5)
+Blend modes: multiply — use for overlapping glow/gradient layers.
+Masks / fades: var(--framer-input-icon-mask-image) | var(--framer-input-icon-mask-image)
+
+## Interactions, States & Animation
+Recreate the source's interaction feedback. Every interactive element must have hover, focus-visible, active and disabled states consistent with the rules below.
+### Hover states
+```css
+code.framer-text a.framer-text:hover,code.framer-text span.framer-text[data-nested-link]:h { color:var(--framer-link-hover-text-color-rgb,var(--framer-link-hover-text-color,var(--framer-link-text-color-rgb,var(--framer-link-text-color,var(--framer-blockquote-text-color-rgb,var(--framer-blockquote-text-color,var(--framer-code-text-color-rgb,var(--frame; }
+code.framer-text a.framer-text:hover,code.framer-text span.framer-text[data-nested-link]:h { color:var(--framer-link-hover-text-color,var(--framer-link-text-color,var(--framer-blockquote-text-color,var(--framer-code-text-color,var(--framer-text-color,#000))))); }
+code.framer-text a.framer-text[data-framer-page-link-current]:hover,code.framer-text span. { color:var(--framer-link-hover-text-color,var(--framer-link-current-text-color,var(--framer-link-text-color,var(--framer-code-text-color,var(--framer-text-color,#000))))); }
+.framer-form-text-input-clear:hover,.framer-form-text-input-clear:focus-visible { color:var(--framer-input-font-color); }
+```
+### Focus states
+```css
+.framer-form-input:focus-visible { outline:none; }
+.framer-form-text-input:focus-within,.framer-form-text-input.framer-form-input-forced-focu { box-shadow:var(--framer-input-focused-box-shadow,var(--framer-input-box-shadow)); background:var(--framer-input-focused-background,var(--framer-input-background)); }
+.framer-form-text-input:focus-within:after,.framer-form-text-input.framer-form-input-force { border-color:var(--framer-input-focused-border-color,var(--framer-input-border-color)); border-style:var(--framer-input-focused-border-style,var(--framer-input-border-style)); border-width:var(--framer-input-focused-border-width,var(--framer-input-border-top-w; }
+.framer-form-text-input-clear:hover,.framer-form-text-input-clear:focus-visible { color:var(--framer-input-font-color); }
+```
+### Active / pressed states
+```css
+[data-framer-cursor=grab]:active { cursor:grabbing; }
+```
+Transform vocabulary (lifts, scales, tilts): lowercase | var(--text-transform) | var(--framer-text-transform) | var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform,none))) | var(--framer-link-hover-text-transform,var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform,none)))) | var(--framer-link-text-transform,var(--framer-text-transform)) | var(--framer-link-hover-text-transform,var(--framer-link-text-transform,var(--framer-text-transform))) | var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform)))
+scroll-behavior: auto;
+Performance hints used by the source: will-change: var(--framer-will-change-override,transform) | var(--framer-will-change-effect-override,transform)
+Add a `prefers-reduced-motion: reduce` fallback that disables transforms and long animations.
+Breakpoints observed: @media(min-width: 1280px) | @media(min-width: 810px) and (max-width: 1279.98px) | @media(max-width: 809.98px) | @media (max-width:1279px) and (min-width:810px) | @media (max-width:809px) and (min-width:0) | @media (min-width:810px) and (max-width:1279.98px) | @media (max-width:809.98px) | @media (max-width:1199px) and (min-width:810px) — keep the effects tasteful and performant on mobile (reduce blur radius and glow spread on small screens).
+
+---
+## Implementation order
+1. Global tokens: rewrite `src/index.css` (:root + .dark) and `tailwind.config.ts` with the palette, radii, shadows and fonts above.
+2. Add reusable utility classes/variants for the signature effects (e.g. `.glass-surface`, `.glow-primary`, `.gradient-border`, `.gradient-text`) instead of repeating raw CSS.
+3. Update shared shells: header, nav, footer, sidebar, page background (including any ambient gradient/glow/texture layer the source uses).
+4. Update every shadcn/base component variant: button, card, input, select, dialog, dropdown, tabs, badge, table, toast, skeleton.
+5. Sweep every route/page for leftover hardcoded colours and old-style decorations.
+6. Add the keyframes, transitions and hover/focus/active states so the app feels alive, not just recoloured.
+
+## Acceptance criteria
+- A screenshot of any page of this app placed next to https://li.fi/ should read as the same design system: same vibe (gradient-rich, soft-rounded, high-saturation, technical-mono, editorial-serif, bold-display-type), same surface treatment, same corner and depth language, same motion feel.
+- No page still shows the previous aesthetic.
+- All interactive elements animate on hover/focus/press with the durations and easings specified.
+- Contrast remains accessible (WCAG AA) after the restyle; adjust foreground tokens if a combination fails.
+- Layout structure, copy, routing and functionality are unchanged.
+
+---
+
+## Structured Style Data (JSON)
+
+```json
+{
+  "sourceUrl": "https://li.fi/",
+  "semanticTokens": {
+    "background": "0 0% 100%",
+    "foreground": "0 0% 0%",
+    "primary": "236 73% 56%",
+    "primaryForeground": "0 0% 98%",
+    "secondary": "0 0% 10%",
+    "secondaryForeground": "0 0% 0%",
+    "muted": "0 0% 100%",
+    "mutedForeground": "0 0% 0%",
+    "accent": "240 100% 47%",
+    "accentForeground": "0 0% 98%",
+    "border": "240 6% 90%",
+    "card": "0 0% 10%",
+    "cardForeground": "0 0% 0%",
+    "radius": "8px"
+  },
+  "colors": {
+    "palette": [
+      "#000000",
+      "#0000ee",
+      "#1a1a1a",
+      "#616161",
+      "#ffffff",
+      "#646460",
+      "#666666",
+      "#374151",
+      "#1f2937",
+      "#f9fafb",
+      "#111827",
+      "rgb(153, 153, 153)",
+      "#6b7280",
+      "#3f49e1",
+      "#09f",
+      "#999",
+      "#99999940",
+      "#666",
+      "#4b5563",
+      "#f6f3f2",
+      "#f5b5ff",
+      "#ffffffb3",
+      "rgb(249, 250, 251)",
+      "#1a1a1a21",
+      "#eb3131",
+      "#4ef263",
+      "#ffdc42",
+      "#453f3d",
+      "#1a1615",
+      "#737368"
+    ],
+    "gradients": [
+      "linear-gradient(117deg,#ffffff26 40%,#3f49e126 100%)",
+      "linear-gradient(#fff 0% 72.1938%,#f6f3f2 100%)"
+    ]
+  },
+  "typography": {
+    "fonts": [
+      "sans-serif",
+      "Figtree, \"Figtree Placeholder\", sans-serif",
+      "\"JetBrains Mono\", \"JetBrains Mono Placeholder\", sans-serif",
+      "Inter, \"Inter Placeholder\", sans-serif",
+      "Figtree",
+      "Inter",
+      "JetBrains Mono",
+      "Figtree Placeholder",
+      "Inter Placeholder",
+      "JetBrains Mono Placeholder"
+    ],
+    "sizes": [
+      "12px",
+      "16px",
+      "14px",
+      "48px",
+      "24px",
+      "18px",
+      "64px",
+      "21px",
+      "60px",
+      "36px",
+      "26px",
+      "var(--font-size)",
+      "var(--framer-font-size)",
+      "var(--framer-link-font-size,var(--framer-font-size))",
+      "var(--framer-link-hover-font-size,var(--framer-link-font-size,var(--framer-font-size)))",
+      "var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size)))",
+      "calc(var(--framer-blockquote-font-size,var(--framer-font-size,16px))*var(--framer-font-size-scale,1))",
+      "calc(var(--framer-link-hover-font-size,var(--framer-blockquote-font-size,var(--framer-font-size,16px)))*var(--framer-font-size-scale,1))",
+      "calc(var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size,16px)))*var(--framer-font-size-scale,1))",
+      "calc(var(--framer-link-hover-font-size,var(--framer-link-current-font-size,var(--framer-link-font-size,var(--framer-font-size,16px))))*var(--framer-font-size-scale,1))"
+    ],
+    "weights": [
+      "600",
+      "900",
+      "700",
+      "400",
+      "500",
+      "min(calc(var(--framer-font-weight-increase,0) + var(--font-weight,400)),900)",
+      "var(--framer-font-weight)",
+      "var(--framer-link-font-weight,var(--framer-font-weight))",
+      "var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-font-weight)))",
+      "var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight)))",
+      "var(--framer-font-weight-preview,var(--framer-blockquote-font-weight,var(--framer-font-weight,400)))",
+      "var(--framer-blockquote-font-weight-bold,var(--framer-font-weight-bold,bolder))",
+      "var(--framer-blockquote-font-weight-italic,var(--framer-font-weight-italic))",
+      "var(--framer-blockquote-font-weight-bold-italic,var(--framer-font-weight-bold-italic,bolder))",
+      "var(--framer-blockquote-font-weight,var(--framer-code-font-weight,var(--framer-font-weight,400)))",
+      "var(--framer-font-weight-preview,var(--framer-link-font-weight,var(--framer-blockquote-font-weight,var(--framer-font-weight,400))))",
+      "var(--framer-font-weight-preview,var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-blockquote-font-weight,var(--framer-font-weight,400)))))",
+      "var(--framer-font-weight-preview,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400))))",
+      "var(--framer-code-font-weight,var(--framer-font-weight,400))",
+      "var(--framer-font-weight-preview,var(--framer-link-hover-font-weight,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400)))))",
+      "var(--framer-font-weight,400)",
+      "var(--framer-link-font-weight,var(--framer-font-weight,400))",
+      "var(--framer-link-hover-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400)))",
+      "var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400)))",
+      "var(--framer-link-hover-font-weight,var(--framer-link-current-font-weight,var(--framer-link-font-weight,var(--framer-font-weight,400))))",
+      "bolder",
+      "var(--framer-input-font-weight)"
+    ],
+    "lineHeights": [
+      "var(--line-height)",
+      "var(--framer-line-height)",
+      "var(--framer-blockquote-line-height,var(--framer-line-height,1.2em))",
+      "1.2em",
+      "var(--framer-line-height,1.2em)",
+      "20px",
+      "26px",
+      "46px",
+      "40px",
+      "64px",
+      "58px",
+      "48px",
+      "28px",
+      "24px",
+      "44px"
+    ],
+    "letterSpacings": [
+      "var(--letter-spacing)",
+      "var(--framer-letter-spacing)",
+      "var(--framer-blockquote-letter-spacing,var(--framer-letter-spacing,0))",
+      "0",
+      "var(--framer-letter-spacing,0)",
+      "0em",
+      "-2px",
+      ".02em",
+      "-1px",
+      "var(--framer-input-font-letter-spacing)"
+    ]
+  },
+  "buttons": [
+    {
+      "selector": "body,input,textarea,select,button",
+      "fontSize": "12px",
+      "fontFamily": "sans-serif"
+    },
+    {
+      "selector": "[data-reset=button]",
+      "backgroundColor": "0 0",
+      "padding": "0"
+    }
+  ],
+  "shadows": [
+    "var(--framer-input-box-shadow)",
+    "var(--framer-input-focused-box-shadow,var(--framer-input-box-shadow))"
+  ],
+  "borders": {
+    "radii": [
+      "8px",
+      "24px",
+      "999px",
+      "2px",
+      "6px",
+      "0px 0px 64px",
+      "var(--framer-blockquote-text-background-radius,var(--framer-text-background-radius,initial))",
+      "var(--framer-link-text-background-radius,initial)",
+      "var(--framer-link-hover-text-background-radius,var(--framer-link-text-background-radius,var(--framer-text-background-radius,initial)))",
+      "var(--framer-link-current-text-background-radius,var(--framer-link-text-background-radius,initial))",
+      "var(--framer-link-hover-text-background-radius,var(--framer-link-current-text-background-radius,var(--framer-link-text-background-radius,initial)))",
+      "1px"
+    ],
+    "styles": [
+      "1px solid #99999940"
+    ]
+  },
+  "spacing": [
+    "10px",
+    "8px",
+    "32px",
+    "20px",
+    "24px",
+    "72px",
+    "12px",
+    "12px 0",
+    "16px",
+    "var(--framer-input-padding)",
+    "100px 0",
+    "40px",
+    "10px 10px 10px 14px",
+    "64px",
+    "36px",
+    "unset",
+    "12px 32px",
+    "0 16px",
+    "64px 0",
+    "60px"
+  ],
+  "backgrounds": {
+    "colors": [
+      "#ffffff",
+      "#3f49e1",
+      "#1a1a1a",
+      "#000000",
+      "#f5b5ff",
+      "#fff3c2",
+      "#0000001a",
+      "#ddd",
+      "#9999991a"
+    ],
+    "gradients": [
+      "linear-gradient(117deg,#ffffff26 40%,#3f49e126 100%)",
+      "linear-gradient(#fff 0% 72.1938%,#f6f3f2 100%)"
+    ]
+  },
+  "motion": {
+    "durations": [
+      ".1s",
+      ".15s"
+    ],
+    "easings": [
+      "cubic-bezier(.44,0,.56,1)"
+    ],
+    "transitions": [
+      "color .1s cubic-bezier(.44,0,.56,1)",
+      "var(--framer-input-focused-transition)",
+      "color .15s"
+    ],
+    "keyframes": []
+  },
+  "vibe": {
+    "labels": [
+      "gradient-rich",
+      "soft-rounded",
+      "high-saturation",
+      "technical-mono",
+      "editorial-serif",
+      "bold-display-type"
+    ],
+    "summary": "The source design reads as: gradient-rich, soft-rounded, high-saturation, technical-mono, editorial-serif, bold-display-type. It mixes light and dark surfaces. Generously rounded corners (~173px average, up to 24px). Subtle elevation using 2 shadow level(s). Motion: snappy transitions (~125ms average) using cubic-bezier(.44,0,.56,1).",
+    "evidence": [
+      "4 gradients across backgrounds and accents.",
+      "5 highly saturated colours in the palette."
+    ],
+    "colorScheme": "mixed",
+    "cornerLanguage": "Generously rounded corners (~173px average, up to 24px).",
+    "depthLanguage": "Subtle elevation using 2 shadow level(s).",
+    "motionLanguage": "snappy transitions (~125ms average) using cubic-bezier(.44,0,.56,1)."
+  },
+  "effects": {
+    "backdropFilters": [],
+    "filters": [
+      "contrast(.5)"
+    ],
+    "glassLayers": [],
+    "glowShadows": [],
+    "innerShadows": [],
+    "textShadows": [],
+    "gradientBorders": [],
+    "blendModes": [
+      "multiply"
+    ],
+    "masks": [
+      "var(--framer-input-icon-mask-image)",
+      "var(--framer-input-icon-mask-image)"
+    ],
+    "clipPaths": [],
+    "outlines": [],
+    "textGradients": [],
+    "textureUrls": []
+  },
+  "interactions": {
+    "hover": [
+      {
+        "selector": "code.framer-text a.framer-text:hover,code.framer-text span.framer-text[data-nested-link]:h",
+        "declarations": "color:var(--framer-link-hover-text-color-rgb,var(--framer-link-hover-text-color,var(--framer-link-text-color-rgb,var(--framer-link-text-color,var(--framer-blockquote-text-color-rgb,var(--framer-blockquote-text-color,var(--framer-code-text-color-rgb,var(--frame"
+      },
+      {
+        "selector": "code.framer-text a.framer-text:hover,code.framer-text span.framer-text[data-nested-link]:h",
+        "declarations": "color:var(--framer-link-hover-text-color,var(--framer-link-text-color,var(--framer-blockquote-text-color,var(--framer-code-text-color,var(--framer-text-color,#000)))))"
+      },
+      {
+        "selector": "code.framer-text a.framer-text[data-framer-page-link-current]:hover,code.framer-text span.",
+        "declarations": "color:var(--framer-link-hover-text-color,var(--framer-link-current-text-color,var(--framer-link-text-color,var(--framer-code-text-color,var(--framer-text-color,#000)))))"
+      },
+      {
+        "selector": ".framer-form-text-input-clear:hover,.framer-form-text-input-clear:focus-visible",
+        "declarations": "color:var(--framer-input-font-color)"
+      }
+    ],
+    "focus": [
+      {
+        "selector": ".framer-form-input:focus-visible",
+        "declarations": "outline:none"
+      },
+      {
+        "selector": ".framer-form-text-input:focus-within,.framer-form-text-input.framer-form-input-forced-focu",
+        "declarations": "box-shadow:var(--framer-input-focused-box-shadow,var(--framer-input-box-shadow)); background:var(--framer-input-focused-background,var(--framer-input-background))"
+      },
+      {
+        "selector": ".framer-form-text-input:focus-within:after,.framer-form-text-input.framer-form-input-force",
+        "declarations": "border-color:var(--framer-input-focused-border-color,var(--framer-input-border-color)); border-style:var(--framer-input-focused-border-style,var(--framer-input-border-style)); border-width:var(--framer-input-focused-border-width,var(--framer-input-border-top-w"
+      },
+      {
+        "selector": ".framer-form-text-input-clear:hover,.framer-form-text-input-clear:focus-visible",
+        "declarations": "color:var(--framer-input-font-color)"
+      }
+    ],
+    "active": [
+      {
+        "selector": "[data-framer-cursor=grab]:active",
+        "declarations": "cursor:grabbing"
+      }
+    ],
+    "groupStates": [],
+    "keyframeBlocks": [],
+    "animationShorthands": [],
+    "transforms": [
+      "lowercase",
+      "var(--text-transform)",
+      "var(--framer-text-transform)",
+      "var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform,none)))",
+      "var(--framer-link-hover-text-transform,var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform,none))))",
+      "var(--framer-link-text-transform,var(--framer-text-transform))",
+      "var(--framer-link-hover-text-transform,var(--framer-link-text-transform,var(--framer-text-transform)))",
+      "var(--framer-link-current-text-transform,var(--framer-link-text-transform,var(--framer-text-transform)))",
+      "var(--framer-blockquote-text-transform,var(--framer-text-transform,none))",
+      "var(--framer-link-text-transform,var(--framer-blockquote-text-transform,var(--framer-text-transform,none)))",
+      "var(--framer-link-hover-text-transform,var(--framer-link-text-transform,var(--framer-blockquote-text-transform,var(--framer-text-transform,none))))",
+      "var(--framer-text-transform,none)"
+    ],
+    "willChange": [
+      "var(--framer-will-change-override,transform)",
+      "var(--framer-will-change-effect-override,transform)"
+    ],
+    "scrollBehavior": "auto",
+    "scrollDriven": false,
+    "stickyElements": 0,
+    "reducedMotion": false,
+    "mediaQueries": [
+      "@media(min-width: 1280px)",
+      "@media(min-width: 810px) and (max-width: 1279.98px)",
+      "@media(max-width: 809.98px)",
+      "@media (max-width:1279px) and (min-width:810px)",
+      "@media (max-width:809px) and (min-width:0)",
+      "@media (min-width:810px) and (max-width:1279.98px)",
+      "@media (max-width:809.98px)",
+      "@media (max-width:1199px) and (min-width:810px)",
+      "@media (max-width:1439px) and (min-width:810px)",
+      "@media (min-width: 810px) and (max-width: 1279.98px)"
+    ]
+  }
+}
+```

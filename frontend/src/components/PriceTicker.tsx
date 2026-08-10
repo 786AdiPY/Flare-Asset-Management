@@ -28,22 +28,22 @@ export function PriceTicker() {
   }, []);
 
   if (error) {
-    return <div className="text-sm text-danger">Price feed unavailable: {error}</div>;
+    return <div className="text-xs text-danger">Price feed unavailable: {error}</div>;
   }
 
   if (feeds.length === 0) {
-    return <div className="text-sm text-neutral-500">Loading Flare FTSO feeds…</div>;
+    return <div className="text-xs text-neutral-400 animate-pulse">Loading live Flare FTSOv2 price feeds…</div>;
   }
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap items-center gap-2.5">
       {feeds.map((f) => (
         <div
           key={f.symbol}
-          className="flex items-center gap-2 rounded-lg border border-border bg-panel px-3 py-2"
+          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-md hover:border-accent/40 transition-all"
         >
-          <span className="text-sm text-neutral-400">{f.symbol}</span>
-          <span className="font-mono text-sm">
+          <span className="text-xs font-semibold text-neutral-300">{f.symbol}</span>
+          <span className="font-mono-tech text-xs font-bold text-white">
             {f.value != null
               ? `$${f.value.toLocaleString(undefined, { maximumFractionDigits: 4 })}`
               : "—"}

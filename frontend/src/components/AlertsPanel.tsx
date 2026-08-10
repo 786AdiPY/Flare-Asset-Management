@@ -7,7 +7,7 @@ import type { OpportunityAlert } from "@/lib/types";
 import { SimulatedBadge } from "./SimulatedBadge";
 
 const SEVERITY_BORDER: Record<string, string> = {
-  info: "border-border",
+  info: "border-white/10",
   notable: "border-accent2",
   high: "border-warn",
 };
@@ -43,30 +43,34 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
   }, [walletAddress, refreshToken]);
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-panel p-5">
+    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
       <div className="flex items-center justify-between">
-        <h3 className="text-base font-semibold">Smart Opportunity Alerts</h3>
+        <h3 className="text-base font-bold text-white">Smart Opportunity Alerts</h3>
         <SimulatedBadge simulated={simulated} reason={reason} />
       </div>
 
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && <p className="text-xs text-danger">{error}</p>}
       {!error && alerts.length === 0 && (
-        <p className="text-sm text-neutral-500">
-          No better opportunities right now for {walletAddress ? "your saved holdings" : "the demo portfolio"}.
+        <p className="text-xs text-neutral-400">
+          No higher yield opportunities detected for {walletAddress ? "your portfolio holdings" : "the demo holdings"}.
         </p>
       )}
 
       {alerts.map((alert) => (
         <div
           key={alert.id}
-          className={`rounded-lg border-l-2 ${SEVERITY_BORDER[alert.severity]} bg-ink/60 p-3`}
+          className={`rounded-xl border-l-4 ${SEVERITY_BORDER[alert.severity]} bg-[#09090c] p-4 flex flex-col gap-1.5 shadow-sm`}
         >
-          <p className="text-sm font-medium">{alert.title}</p>
-          <p className="text-xs text-neutral-400">
-            {alert.currentApy}% → {alert.betterApy}% via {alert.protocol} on {alert.chain} (+
-            {alert.apyDeltaPct} pts)
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-bold text-white">{alert.title}</p>
+            <span className="text-xs font-mono-tech text-success font-bold">
+              +{alert.apyDeltaPct} pts APY
+            </span>
+          </div>
+          <p className="text-xs text-neutral-300 font-mono-tech">
+            {alert.currentApy}% → {alert.betterApy}% via {alert.protocol} on {alert.chain}
           </p>
-          <p className="mt-1 text-xs text-neutral-500">{alert.explanation}</p>
+          <p className="text-xs text-neutral-400 leading-relaxed">{alert.explanation}</p>
         </div>
       ))}
     </div>

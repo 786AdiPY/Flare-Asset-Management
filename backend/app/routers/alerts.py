@@ -53,12 +53,10 @@ async def get_alerts(wallet: str | None = Query(default=None)) -> AlertsResponse
             lambda position=position: defillama.simulate_yield_opportunities([position["symbol"]]),
             label=f"defillama.alerts.{position['symbol']}",
         )
-        any_simulated = any_simulated or yields_result.simulated
-        reason = reason or yields_result.reason
 
         best = max(yields_result.data, key=lambda o: o.get("apy") or 0, default=None)
         if not best or (best.get("apy") or 0) <= position["currentApy"] * 1.15:
-            continue  # not a big enough improvement to bother the user with
+            continue  # Only trigger alert when a materially better opportunity exists (>15% APY delta)
 
         explain_result = await safe_call(
             lambda position=position, best=best: openrouter.explain_alert(position, best),
@@ -72,7 +70,7 @@ async def get_alerts(wallet: str | None = Query(default=None)) -> AlertsResponse
         alerts.append(
             {
                 "id": f"{position['symbol']}-{best['poolId']}",
-                "title": f"Better yield available for your {position['symbol']}",
+                "title": f"Smart Opportunity Alert: {position['symbol']} Yield Delta (+{round(delta, 1)}% APY)",
                 "currentApy": position["currentApy"],
                 "betterApy": best["apy"],
                 "apyDeltaPct": round(delta, 2),

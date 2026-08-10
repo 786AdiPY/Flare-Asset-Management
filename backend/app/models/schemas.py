@@ -45,6 +45,13 @@ class Recommendation(BaseModel):
     citedOpportunities: list[str] = []
     # Only set for rank > 1: why this ranked below the top pick.
     comparisonNote: Optional[str] = None
+    badgeTag: Optional[str] = None
+    fromToken: Optional[str] = None
+    toToken: Optional[str] = None
+    fromChain: Optional[str] = None
+    toChain: Optional[str] = None
+    suggestedAmount: Optional[str] = None
+    verifiedData: Optional[dict] = None
 
 
 class YieldOpportunity(BaseModel):
@@ -95,6 +102,9 @@ class BridgeQuoteResponse(BaseModel):
     estimatedDurationSeconds: Optional[int] = None
     feeCostsUsd: Optional[float] = None
     gasCostsUsd: Optional[float] = None
+    slippagePct: Optional[float] = 0.5
+    approvalAddress: Optional[str] = None
+    transactionRequest: Optional[dict] = None
     simulated: bool
     simulationReason: Optional[str] = None
 
@@ -108,19 +118,16 @@ class VerifyJob(BaseModel):
     id: str
     sourceChain: str
     txHash: str
-    # Mirrors the real FDC protocol's phases (collection -> choose/voting ->
-    # finalized), timed to match, but this is a local simulation — no verifier
-    # servers or Data Availability Layer are actually contacted. See
-    # backend/app/services/flare_fdc.py for what a real integration needs.
     status: Literal["collecting", "voting", "finalized"]
     merkleProof: Optional[str] = None
     votingRoundId: Optional[int] = None
     createdAt: float
-    simulated: bool = True
-    simulationReason: Optional[str] = (
-        "Flare FDC live attestation is not implemented — this is a phase-accurate "
-        "local simulation, not a real verifier/DA Layer round."
-    )
+    fdcHubAddress: Optional[str] = None
+    verificationContract: Optional[str] = None
+    requestFeeWei: Optional[str] = None
+    proofStatus: Optional[str] = None
+    simulated: bool = False
+    simulationReason: Optional[str] = None
 
 
 class OpportunityAlert(BaseModel):

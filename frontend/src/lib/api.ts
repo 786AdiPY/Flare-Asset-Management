@@ -92,3 +92,17 @@ export function postVerify(sourceChain: string, txHash: string): Promise<VerifyJ
 export function getVerifyJob(jobId: string): Promise<VerifyJob> {
   return apiFetch<VerifyJob>(`/api/verify/${encodeURIComponent(jobId)}`);
 }
+
+export function postBridgeQuote(payload: {
+  fromChain: string;
+  toChain: string;
+  fromToken: string;
+  toToken: string;
+  fromAmount: string;
+  fromAddress: string;
+}): Promise<import("./types").BridgeQuoteResponse> {
+  return apiFetch<import("./types").BridgeQuoteResponse>("/api/bridge-quote", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
