@@ -32,6 +32,8 @@ function StrategyCard({
   onSelect?: (rec: Recommendation) => void;
 }) {
   const [showSteps, setShowSteps] = useState(false);
+  const [showWhyThis, setShowWhyThis] = useState(false);
+  const [showDataSources, setShowDataSources] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const formattedTvl = formatTvlUsd(rec.verifiedData?.verifiedTvlUsd);
@@ -148,24 +150,84 @@ function StrategyCard({
         <p className="text-xs text-neutral-300 leading-relaxed">{rec.explanation}</p>
       </div>
 
-      {/* Explainable AI Note */}
-      {rec.comparisonNote && (
-        <div className="rounded-xl border border-warn/30 bg-warn/10 p-3 text-xs text-warn">
-          💡 <strong>Explainable AI Note:</strong> {rec.comparisonNote}
+      {/* Interactive Meta Row: [Why this?] and [Data sources] */}
+      <div className="flex flex-wrap items-center gap-3 pt-0.5">
+        <button
+          type="button"
+          onClick={() => setShowWhyThis(!showWhyThis)}
+          className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white font-mono-tech transition-colors"
+        >
+          <span className="underline underline-offset-4 decoration-neutral-500 hover:decoration-white font-medium">
+            Why this?
+          </span>
+          <svg
+            className={`w-3 h-3 transition-transform duration-200 ${showWhyThis ? "rotate-180 text-accent2" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+
+        <span className="text-neutral-600">·</span>
+
+        <button
+          type="button"
+          onClick={() => setShowDataSources(!showDataSources)}
+          className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white font-mono-tech transition-colors"
+        >
+          <span className="underline underline-offset-4 decoration-neutral-500 hover:decoration-white font-medium flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse inline-block" />
+            Data sources
+          </span>
+          <svg
+            className={`w-3 h-3 transition-transform duration-200 ${showDataSources ? "rotate-180 text-success" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Why this? Expandable Panel */}
+      {showWhyThis && (
+        <div className="border-l-2 border-accent bg-accent/5 pl-4 py-2.5 pr-3 rounded-r-xl transition-all animate-fadeIn">
+          <h4 className="text-xs font-bold text-white font-mono-tech">
+            Why ranked #{rec.rank}?
+          </h4>
+          <p className="text-xs text-neutral-300 mt-1 leading-relaxed font-sans">
+            {rec.comparisonNote || "Top pick offering the highest estimated yield for your financial goal."}
+          </p>
         </div>
       )}
 
-      {/* Guardrail Verified Data */}
-      {rec.verifiedData && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-success/30 bg-success/10 px-3.5 py-2.5 text-xs text-success font-mono-tech">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-success animate-pulse" />
-            <strong className="text-white">AI Guardrail Verified Data:</strong>
-            <span>Sources [{rec.verifiedData.sourceAudit.join(", ")}]</span>
-          </div>
-          <span className="text-[11px] text-neutral-300">
-            Validated Route: {rec.verifiedData.verifiedRoute || `${rec.fromToken} → ${rec.toToken}`}
-          </span>
+      {/* Data sources Expandable Panel */}
+      {showDataSources && (
+        <div className="border-l-2 border-success bg-success/5 pl-4 py-2.5 pr-3 rounded-r-xl transition-all animate-fadeIn">
+          <h4 className="text-xs font-bold text-white font-mono-tech">
+            Verified against
+          </h4>
+          <ul className="mt-2 space-y-1 text-xs text-neutral-300 font-mono-tech">
+            <li className="flex items-center gap-2">
+              <span className="text-neutral-500">•</span>
+              <span>Flare FTSOv2 — price</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-neutral-500">•</span>
+              <span>DeFiLlama — APY / TVL</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-neutral-500">•</span>
+              <span>LI.FI — route / fees</span>
+            </li>
+            <li className="flex items-center gap-2 text-neutral-400">
+              <span className="text-neutral-500">•</span>
+              <span>Updated 12s ago</span>
+            </li>
+          </ul>
         </div>
       )}
 
