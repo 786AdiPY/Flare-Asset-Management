@@ -185,3 +185,19 @@ class YieldsResponse(BaseModel):
     opportunities: list[YieldOpportunity]
     simulated: bool
     simulationReason: Optional[str] = None
+
+
+class FAssetsInfo(BaseModel):
+    """Live Coston2 FTestXRP Asset Manager parameters."""
+    assetManager: str
+    fAssetToken: str
+    lotSizeUBA: int
+    lotSizeXRP: float
+    assetDecimals: int
+    mintingDecimals: int
+    collateralReservationFeeBIPS: Optional[int] = None
+    collateralReservationFeePct: Optional[float] = None
+    network: str
+    fetchedAt: int
+    simulated: bool = False
+    simulationReason: Optional[str] = None

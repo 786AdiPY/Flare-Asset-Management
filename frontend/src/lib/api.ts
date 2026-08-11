@@ -2,6 +2,7 @@ import type {
   AlertsResponse,
   AssetHolding,
   ConversationTurn,
+  FAssetsInfo,
   IntentResponse,
   PortfolioResponse,
   VerifyJob,
@@ -42,7 +43,7 @@ export function getAlerts(wallet?: string | null): Promise<AlertsResponse> {
 }
 
 export function getPrices(
-  symbols = "FLR/USD,BTC/USD,ETH/USD"
+  symbols = "FLR/USD,BTC/USD,ETH/USD,XRP/USD"
 ): Promise<{ feeds: IntentResponse["context"]["prices"] }> {
   return apiFetch(`/api/prices?symbols=${encodeURIComponent(symbols)}`);
 }
@@ -105,4 +106,8 @@ export function postBridgeQuote(payload: {
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getFAssetsInfo(): Promise<FAssetsInfo> {
+  return apiFetch<FAssetsInfo>("/api/fassets/ftestxrp");
 }

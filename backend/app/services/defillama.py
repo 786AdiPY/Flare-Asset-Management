@@ -73,7 +73,42 @@ async def get_relevant_yield_opportunities(
     return [_to_opportunity(p) for p in matched[:limit]]
 
 
+_XRP_KEYWORDS = {"XRP", "FXRP", "FTESTXRP", "FASSET"}
+
+
 def simulate_yield_opportunities(keywords: list[str]) -> list[dict]:
+    upper_kws = {k.upper() for k in keywords}
+    is_xrp_intent = bool(upper_kws & _XRP_KEYWORDS)
+
+    if is_xrp_intent:
+        # Return known Flare DeFi pools that support FXRP/FTestXRP.
+        # APY/TVL here are representative of real SparkDEX/Kinetic ranges —
+        # callers should treat these as simulated (no live DeFiLlama FXRP data).
+        return [
+            {
+                "project": "SparkDEX",
+                "chain": "Flare",
+                "symbol": "FXRP-FLR",
+                "apy": None,          # live data not available in simulation
+                "apyBase": None,
+                "apyReward": None,
+                "tvlUsd": None,
+                "poolId": "simulated-sparkdex-fxrp-1",
+                "note": "Live APY/TVL not yet indexed by DeFiLlama for FTestXRP. Check SparkDEX directly.",
+            },
+            {
+                "project": "Kinetic",
+                "chain": "Flare",
+                "symbol": "FXRP",
+                "apy": None,
+                "apyBase": None,
+                "apyReward": None,
+                "tvlUsd": None,
+                "poolId": "simulated-kinetic-fxrp-1",
+                "note": "Live APY/TVL not yet indexed by DeFiLlama for FTestXRP. Check Kinetic directly.",
+            },
+        ]
+
     seed = (keywords[0] if keywords else "USD").upper()
     return [
         {

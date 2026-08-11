@@ -44,6 +44,28 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           </button>
           <button
             type="button"
+            onClick={() => {
+              onLaunchApp();
+              // Slight delay so the app mounts, then auto-fill the intent
+              setTimeout(() => {
+                const ta = document.querySelector<HTMLTextAreaElement>("textarea");
+                if (ta) {
+                  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+                    window.HTMLTextAreaElement.prototype,
+                    "value"
+                  )?.set;
+                  nativeInputValueSetter?.call(ta, "What can I do with my XRP on Flare?");
+                  ta.dispatchEvent(new Event("input", { bubbles: true }));
+                  ta.focus();
+                }
+              }, 300);
+            }}
+            className="rounded-xl border border-amber/40 bg-amber/10 px-8 py-3.5 text-sm font-mono-tech font-medium text-amber hover:border-amber/60 hover:bg-amber/20 transition-colors"
+          >
+            ⚡ Have XRP? Explore Flare →
+          </button>
+          <button
+            type="button"
             onClick={() => scrollToSection("how-it-works")}
             className="rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-mono-tech font-medium text-ivory hover:border-white/40 hover:bg-white/10 transition-colors"
           >

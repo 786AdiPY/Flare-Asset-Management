@@ -20,6 +20,8 @@ import type {
 } from "@/lib/types";
 import { useWallet } from "@/lib/wallet";
 import { useWalletContext } from "@/lib/walletContext";
+import { FAssetsCard } from "@/components/FAssetsCard";
+
 
 export default function Home() {
   const { walletAddress } = useWalletContext();
@@ -29,6 +31,9 @@ export default function Home() {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [result, setResult] = useState<IntentResponse | null>(null);
+  const [isXrpIntent, setIsXrpIntent] = useState(false);
+  const [xrpAmount, setXrpAmount] = useState("");
+
 
   // Selected strategy & modal state
   const [selectedStrategy, setSelectedStrategy] = useState<Recommendation | null>(null);
@@ -56,7 +61,10 @@ export default function Home() {
       { role: "assistant", content: top ? top.strategy : "No recommendation." },
     ]);
     setResult(res);
-    setCurrentStep(4); // Move to Strategy selection step
+    setCurrentStep(4);
+    // Detect XRP-related intent to show FAssets card
+    const xrpKw = ["xrp", "fxrp", "fasset", "ftestxrp"];
+    setIsXrpIntent(xrpKw.some((k) => userText.toLowerCase().includes(k)));
   }
 
   async function handleSelectStrategy(rec: Recommendation) {
@@ -193,13 +201,13 @@ export default function Home() {
             </div>
 
             <div className="rounded-xl border border-accent/40 bg-accent/15 p-2.5">
-              <div className="text-accent text-[10px] font-bold">FTSOv2</div>
+              <div className="text-accent text-[10px] font-bold">FTSOv2 · FLR</div>
               <strong className="text-accent font-bold block mt-0.5">FLR/USD = $0.0061</strong>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
-              <div className="text-neutral-400 text-[10px]">Portfolio</div>
-              <strong className="text-white font-bold block mt-0.5">Value = $30.50</strong>
+            <div className="rounded-xl border border-amber/40 bg-amber/15 p-2.5">
+              <div className="text-amber text-[10px] font-bold">FTSOv2 · XRP</div>
+              <strong className="text-amber font-bold block mt-0.5">XRP/USD = live</strong>
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
@@ -241,6 +249,11 @@ export default function Home() {
       {result && txStatus.step === "idle" && (
         <section className="flex flex-col gap-4">
           <RecommendationCard result={result} onSelectStrategy={handleSelectStrategy} />
+
+          {/* Contextual FAssets card — shown only for XRP-related intents */}
+          {isXrpIntent && (
+            <FAssetsCard xrpAmount={xrpAmount || undefined} />
+          )}
         </section>
       )}
 

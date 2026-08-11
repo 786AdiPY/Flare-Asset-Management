@@ -6,6 +6,7 @@ import { useWalletContext } from "@/lib/walletContext";
 import type { ConversationTurn, IntentResponse } from "@/lib/types";
 
 const EXAMPLES = [
+  "What can I do with my XRP on Flare?",
   "Generate passive income with my tokenized gold",
   "I want low-risk yield on my USDC across chains",
   "Find the best cross-chain opportunity for my FLR holdings",

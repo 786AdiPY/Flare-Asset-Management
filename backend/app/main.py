@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
-from .routers import alerts, bridge, intent, portfolio, prices, verify, wallet, yields
+from .routers import alerts, bridge, fassets, intent, portfolio, prices, verify, wallet, yields
 
 settings = get_settings()
 
@@ -26,6 +26,7 @@ app.include_router(verify.router, prefix="/api", tags=["verify"])
 app.include_router(portfolio.router, prefix="/api", tags=["portfolio"])
 app.include_router(wallet.router, prefix="/api", tags=["wallet"])
 app.include_router(yields.router, prefix="/api", tags=["yields"])
+app.include_router(fassets.router, prefix="/api", tags=["fassets"])
 
 
 @app.get("/health")

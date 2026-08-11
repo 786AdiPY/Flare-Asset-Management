@@ -10,7 +10,7 @@ from ..services.simulation import safe_call
 
 router = APIRouter()
 
-_PRICE_SYMBOLS = ["FLR/USD", "BTC/USD", "ETH/USD"]
+_PRICE_SYMBOLS = ["FLR/USD", "BTC/USD", "ETH/USD", "XRP/USD"]
 _KNOWN_KEYWORDS = [
     "GOLD",
     "XAU",
@@ -21,6 +21,10 @@ _KNOWN_KEYWORDS = [
     "FLR",
     "BTC",
     "ETH",
+    "XRP",
+    "FXRP",
+    "FASSET",
+    "FTESTXRP",
     "REAL ESTATE",
     "BOND",
     "TREASURY",

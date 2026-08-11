@@ -172,3 +172,18 @@ export interface VerifyJob {
   simulated: boolean;
   simulationReason?: string | null;
 }
+
+export interface FAssetsInfo {
+  assetManager: string;
+  fAssetToken: string;
+  lotSizeUBA: number;
+  lotSizeXRP: number;
+  assetDecimals: number;
+  mintingDecimals: number;
+  collateralReservationFeeBIPS: number | null;
+  collateralReservationFeePct: number | null;
+  network: string;
+  fetchedAt: number;
+  simulated: boolean;
+  simulationReason?: string | null;
+}
