@@ -5,12 +5,10 @@ plus the current XRP/USD price from FTSOv2 for UI display.
 
 from __future__ import annotations
 
-import asyncio
-
 from fastapi import APIRouter
 
 from ..models.schemas import FAssetsInfo
-from ..services import fassets, flare_ftso
+from ..services import fassets
 from ..services.simulation import safe_call
 
 router = APIRouter()
