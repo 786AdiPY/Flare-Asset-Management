@@ -1,0 +1,245 @@
+Redesign ONLY the landing/home page. Do not modify the existing application pages or functionality.
+
+1. NAVBAR
+Create a minimal premium navbar with three clearly separated areas:
+
+LEFT:
+- AssetRouter logo/icon + "AI-Asset Router"
+- Align tightly to the left edge.
+
+CENTER:
+- Exactly four navigation items:
+  Product
+  How It Works
+  Technology
+  Ecosystem
+- Keep them centered independently of the left/right content.
+- Use subtle muted text with a small hover/active state.
+- Do not put the navigation inside a large pill.
+
+RIGHT:
+- "Log in" secondary outlined button.
+- "Sign up" primary dark/filled button.
+- Keep both aligned to the right.
+
+The navbar should feel like a premium fintech website: minimal, thin, spacious and unobtrusive.
+
+2. HERO
+Use a large centered headline:
+
+"Move your assets with intent."
+
+Subheading:
+"AssetRouter understands your goal, discovers opportunities across chains, and helps you choose the best path for your assets."
+
+Primary CTA:
+"Launch AssetRouter →"
+
+Secondary CTA:
+"See how it works ↓"
+
+Keep the typography large, clean and editorial.
+
+3. GLOBE — IMPORTANT
+Replace the current globe completely.
+
+The current globe looks like a generic 3D sphere. Do NOT use a simple CSS sphere, wireframe globe, cartoon globe, or glowing crypto-style planet.
+
+Create a large, realistic, premium dark globe inspired by high-end fintech landing pages.
+
+Visual direction:
+- Almost-black / graphite Earth.
+- Realistic but highly subdued continental geography.
+- Very soft ivory/gray highlights on land.
+- Deep black oceans.
+- Soft studio lighting from one side.
+- Subtle atmospheric rim light.
+- Slightly blurred/faded lower portion so the globe blends into the page.
+- Globe should occupy the lower half of the hero and extend partially beyond the viewport.
+- No bright blue/purple glow.
+- No neon blockchain effects.
+- No exaggerated latitude/longitude grid.
+
+Add extremely subtle network activity:
+- Only a few tiny muted-sage nodes.
+- Very thin connections between selected nodes.
+- Nodes should represent ecosystems such as Flare, Ethereum, Base and Arbitrum.
+- Keep these almost invisible until the user notices them.
+- The globe remains the primary visual, NOT the network diagram.
+
+The overall effect should feel like:
+"global financial infrastructure"
+rather than
+"crypto dashboard."
+
+4. COLOR
+Use the application's new professional palette:
+- Near-black background
+- Warm ivory typography
+- Charcoal surfaces
+- Muted sage for live/active states
+- Warm amber for warnings
+- Very limited blue/violet
+
+Do NOT use the previous neon blue/violet gradient throughout the page.
+
+The existing lightning logo may retain its blue/violet identity as the brand mark.
+
+5. HERO COMPOSITION
+Follow this visual hierarchy:
+
+Navbar
+        ↓
+Large headline
+        ↓
+Short description
+        ↓
+[ Launch AssetRouter ] [ See how it works ]
+        ↓
+        LARGE DARK GLOBE
+        ↓
+Globe subtly extends beyond the bottom of the hero
+
+Do not put unnecessary cards, statistics, partner logos or dashboards over the globe.
+
+6. ANIMATION
+Use subtle motion:
+- Globe slowly rotates or has extremely subtle parallax.
+- Network nodes gently pulse.
+- Hero content fades/slides in on load.
+- No excessive animations or glowing effects.
+
+7. RESPONSIVENESS
+On mobile:
+- Keep logo left.
+- Collapse navigation into a simple menu.
+- Keep hero centered.
+- Scale the globe down while preserving the premium composition.
+
+The final result should look like a serious institutional fintech/Web3 infrastructure company, not a generic crypto landing page.
+
+Rebuild ONLY the landing-page globe using a Three.js/WebGL implementation inspired by Stripe's interactive globe approach.
+
+REFERENCE:
+https://stripe.com/blog/globe
+
+Do NOT use:
+- CSS sphere
+- SVG polygon continents
+- manually drawn continent shapes
+- rectangular Earth images
+- generic 3D globe assets
+- random dotted grids
+
+GOAL:
+Create a premium interactive globe representing IntentPilot's cross-chain asset infrastructure.
+
+GLOBE ARCHITECTURE:
+
+1. BASE SPHERE
+- Create a large Three.js sphere.
+- Near-black/graphite material.
+- Subtle transparency and soft atmospheric lighting.
+- No neon colors.
+
+2. CONTINENT SURFACE
+- Define continents using thousands of small points/dots distributed ONLY over actual landmass geometry.
+- Use a real world country/landmask texture or geographic dataset to determine where dots should appear.
+- Do not approximate continents manually.
+- Dots should form recognizable continental silhouettes when viewed from the front.
+- Use restrained warm-ivory/gray dots with low opacity.
+- Slight variation in opacity/size should make the surface feel alive.
+- Keep the dots subtle; they should not look like a star field.
+
+3. INTENTPILOT NETWORK
+Add only a few important ecosystem nodes:
+- Flare
+- Ethereum
+- Base
+- Arbitrum
+- optionally one additional chain
+
+Place nodes using real latitude/longitude coordinates.
+
+Nodes:
+- small muted-sage points
+- subtle pulse
+- no text labels by default
+
+4. ROUTE ARCS
+Create thin curved 3D arcs between selected chain nodes.
+
+Example:
+Ethereum → Flare
+Flare → Base
+Ethereum → Arbitrum
+
+- Use great-circle style curved paths.
+- Animate the arc progressively so a route appears to travel across the globe.
+- Use muted sage/ivory.
+- Keep arcs extremely thin and elegant.
+- Never create a dense web of lines.
+
+5. INTERACTION
+- Globe slowly rotates automatically.
+- User can drag to rotate it.
+- Scrolling the landing page subtly rotates/translates the globe.
+- Hovering a node can slightly brighten it and reveal the chain name.
+- Keep interaction subtle and premium.
+
+6. HERO COMPOSITION
+Place the globe directly below:
+
+"Move your assets
+with intent."
+
+[ Launch IntentPilot → ] [ See how it works ↓ ]
+
+The globe should occupy approximately 65–75vw on desktop and extend below the first viewport.
+
+It must remain clearly visible against the near-black background.
+
+7. VISUAL STYLE
+Use:
+- near-black background
+- graphite sphere
+- warm ivory continent dots
+- muted sage network nodes
+- extremely subtle warm-white arcs
+
+Do NOT use:
+- blue/purple globe lighting
+- neon effects
+- glowing crypto aesthetics
+- excessive particles
+- labels everywhere
+- visible latitude/longitude grids
+
+8. PERFORMANCE
+Follow Stripe's performance philosophy:
+- Use GPU-accelerated Three.js rendering.
+- Use instanced/batched geometry for the continent dots.
+- Keep animation around 60fps where possible.
+- Pause/reduce animation while scrolling if necessary.
+- Respect prefers-reduced-motion.
+- Provide a static globe fallback for devices where WebGL performance is poor.
+- Do not render unnecessary geometry on the hidden hemisphere.
+
+9. RESPONSIVE
+Desktop:
+- large cinematic globe.
+
+Mobile:
+- significantly reduce dot count and animation.
+- keep the globe visible but smaller.
+- disable expensive effects if necessary.
+
+IMPORTANT:
+Build the globe as a real Three.js scene, not as a CSS/SVG approximation.
+
+First make the Earth/continent dot surface accurate and recognizable.
+Then add chain nodes.
+Then add route arcs.
+Then add animation.
+
+Do not modify the rest of the landing page.

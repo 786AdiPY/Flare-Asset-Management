@@ -107,6 +107,8 @@ export interface TxStatus {
   txHash?: string | null;
   error?: string | null;
   simulated?: boolean;
+  recommendation?: Recommendation | null;
+  amount?: string | null;
 }
 
 export interface OpportunityAlert {

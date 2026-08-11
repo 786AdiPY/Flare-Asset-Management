@@ -61,7 +61,9 @@ export function WalletConnect() {
           </button>
         </div>
       )}
-      {error && <span className="text-xs text-danger">{error}</span>}
+      {!effectiveAddress && error && (
+        <span className="text-xs text-danger">{error}</span>
+      )}
     </div>
   );
 }
