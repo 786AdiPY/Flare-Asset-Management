@@ -78,9 +78,12 @@ async def post_intent(req: IntentRequest) -> IntentResponse:
     overall_simulated = rec_result.simulated
     reason = rec_result.reason
 
+    goal_profile = rec_result.data.get("goalProfile")
+
     return IntentResponse(
         recommendations=guardrailed_recs,
         context={"prices": price_results, "topYields": yields_result.data},
+        goalProfile=goal_profile,
         simulated=overall_simulated,
         simulationReason=reason,
     )

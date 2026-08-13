@@ -34,6 +34,16 @@ export interface FeedValue {
   simulationReason?: string | null;
 }
 
+export interface GoalProfile {
+  asset?: string | null;
+  objective?: "yield" | "liquidity" | "preservation" | "growth" | "lowest_cost" | null;
+  targetApy?: number | null;
+  riskTolerance?: "low" | "medium" | "high" | null;
+  maxLockDays?: number | null;
+  preferredChain?: string | null;
+  feePreference?: "lowest_fees" | "acceptable" | null;
+}
+
 export interface RecommendationVerifiedData {
   guardrailPassed: boolean;
   sourceAudit: string[];
@@ -62,6 +72,8 @@ export interface Recommendation {
   toChain?: string | null;
   suggestedAmount?: string | null;
   verifiedData?: RecommendationVerifiedData | null;
+  evidence?: string[];
+  score?: number | null;
 }
 
 export interface ConversationTurn {
@@ -75,6 +87,7 @@ export interface IntentResponse {
     prices: FeedValue[];
     topYields: YieldOpportunity[];
   };
+  goalProfile?: GoalProfile | null;
   simulated: boolean;
   simulationReason?: string | null;
 }
@@ -121,6 +134,7 @@ export interface OpportunityAlert {
   chain: string;
   explanation: string;
   severity: "info" | "notable" | "high";
+  goalMatchNote?: string | null;
 }
 
 export interface AlertsResponse {

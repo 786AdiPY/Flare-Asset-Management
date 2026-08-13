@@ -66,8 +66,14 @@ function StrategyCard({
             OPTION #{rec.rank}
           </span>
           {rec.badgeTag && (
-            <span className="rounded-full bg-accent/20 border border-accent/40 px-2.5 py-0.5 text-[11px] font-bold text-accent2 uppercase tracking-wide font-mono-tech">
-              {rec.badgeTag}
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide font-mono-tech ${
+                rec.badgeTag === "Best Match"
+                  ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 shadow-sm"
+                  : "bg-accent/20 border border-accent/40 text-accent2"
+              }`}
+            >
+              {rec.badgeTag === "Best Match" ? "★ Best Match" : rec.badgeTag}
             </span>
           )}
         </div>
@@ -142,15 +148,33 @@ function StrategyCard({
         </div>
       </div>
 
-      {/* AI Reasoning Section */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-xs font-bold text-neutral-400 font-mono-tech uppercase tracking-wider">
-          AI reasoning:
-        </span>
-        <p className="text-xs text-neutral-300 leading-relaxed">{rec.explanation}</p>
+      {/* Why This Option? Section */}
+      <div className="flex flex-col gap-2 rounded-xl border border-accent/20 bg-accent/5 p-4">
+        <div className="flex items-center gap-2">
+          <span className="text-accent text-sm">⚡</span>
+          <span className="text-xs font-bold text-accent font-mono-tech uppercase tracking-wider">
+            Why this option?
+          </span>
+        </div>
+
+        {/* Evidence Checkmarks */}
+        {rec.evidence && rec.evidence.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 py-1">
+            {rec.evidence.map((ev, idx) => (
+              <span
+                key={idx}
+                className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300 font-mono-tech"
+              >
+                {ev}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs text-neutral-300 leading-relaxed mt-1">{rec.explanation}</p>
       </div>
 
-      {/* Interactive Meta Row: [Why this?] and [Data sources] */}
+      {/* Interactive Meta Row: [Compare ranking] and [Data sources] */}
       <div className="flex flex-wrap items-center gap-3 pt-0.5">
         <button
           type="button"
@@ -158,7 +182,7 @@ function StrategyCard({
           className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white font-mono-tech transition-colors"
         >
           <span className="underline underline-offset-4 decoration-neutral-500 hover:decoration-white font-medium">
-            Why this?
+            Compare ranking
           </span>
           <svg
             className={`w-3 h-3 transition-transform duration-200 ${showWhyThis ? "rotate-180 text-accent2" : ""}`}
@@ -192,14 +216,14 @@ function StrategyCard({
         </button>
       </div>
 
-      {/* Why this? Expandable Panel */}
+      {/* Compare ranking Expandable Panel */}
       {showWhyThis && (
         <div className="border-l-2 border-accent bg-accent/5 pl-4 py-2.5 pr-3 rounded-r-xl transition-all animate-fadeIn">
           <h4 className="text-xs font-bold text-white font-mono-tech">
-            Why ranked #{rec.rank}?
+            Ranking score comparison #{rec.rank}:
           </h4>
           <p className="text-xs text-neutral-300 mt-1 leading-relaxed font-sans">
-            {rec.comparisonNote || "Top pick offering the highest estimated yield for your financial goal."}
+            {rec.comparisonNote || "Top pick evaluated best against target APY, risk tolerance, and route complexity."}
           </p>
         </div>
       )}
@@ -222,10 +246,6 @@ function StrategyCard({
             <li className="flex items-center gap-2">
               <span className="text-neutral-500">•</span>
               <span>LI.FI — route / fees</span>
-            </li>
-            <li className="flex items-center gap-2 text-neutral-400">
-              <span className="text-neutral-500">•</span>
-              <span>Updated 12s ago</span>
             </li>
           </ul>
         </div>
@@ -294,21 +314,63 @@ function StrategyCard({
 }
 
 export function RecommendationCard({ result, onSelectStrategy }: RecommendationCardProps) {
-  const { recommendations, context, simulated, simulationReason } = result;
+  const { recommendations, context, goalProfile, simulated, simulationReason } = result;
 
   if (!recommendations || recommendations.length === 0) return null;
+
+  const hasGoalChips =
+    goalProfile &&
+    (goalProfile.targetApy ||
+      goalProfile.riskTolerance ||
+      goalProfile.objective ||
+      goalProfile.preferredChain ||
+      goalProfile.asset);
 
   return (
     <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-white">AI Strategy Recommendations</h2>
+          <h2 className="text-lg font-bold text-white">Goal-Aware Strategy Recommendations</h2>
           <p className="text-xs text-neutral-400">
-            Select a strategy card below to preview LI.FI route and execute transaction
+            Ranked deterministically by goal fit score · Select a strategy card to preview route &amp; execute
           </p>
         </div>
         <SimulatedBadge simulated={simulated} reason={simulationReason} />
       </div>
+
+      {/* Parsed Goal Profile Chips */}
+      {hasGoalChips && (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs font-mono-tech">
+          <span className="text-neutral-400 font-bold uppercase tracking-wider text-[10px]">
+            Parsed Goal Profile:
+          </span>
+          {goalProfile.asset && (
+            <span className="rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-white">
+              Asset: {goalProfile.asset}
+            </span>
+          )}
+          {goalProfile.targetApy && (
+            <span className="rounded-md border border-accent/40 bg-accent/15 px-2 py-0.5 text-accent font-bold">
+              Target APY: ≥{goalProfile.targetApy}%
+            </span>
+          )}
+          {goalProfile.riskTolerance && (
+            <span className="rounded-md border border-amber/40 bg-amber/15 px-2 py-0.5 text-amber">
+              Risk: {goalProfile.riskTolerance}
+            </span>
+          )}
+          {goalProfile.objective && (
+            <span className="rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-neutral-200">
+              Goal: {goalProfile.objective}
+            </span>
+          )}
+          {goalProfile.preferredChain && (
+            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-emerald-400">
+              Chain: {goalProfile.preferredChain}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-4">
         {recommendations.map((rec, i) => (

@@ -1,17 +1,4 @@
-from __future__ import annotations
-
-# Deterministic fallback used whenever the live OpenRouter call is unavailable or
-# fails validation. Keeps the "AI recommendation" experience demoable with zero
-# external dependencies — clearly labeled as simulated by the caller (`safe_call`).
-
-
-def _risk_from_tvl(tvl_usd: float | None) -> str:
-    if (tvl_usd or 0) >= 5_000_000:
-        return "low"
-    if (tvl_usd or 0) >= 1_000_000:
-        return "medium"
-    return "high"
-
+from .goal_engine import parse_goal_profile, score_and_rank_recommendations
 
 _XRP_KEYWORDS = {"XRP", "FXRP", "FASSET", "FTESTXRP"}
 
@@ -20,22 +7,19 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
     top_yields = (context.get("topYields") or [])[:3]
     upper_intent = intent.upper()
     is_xrp_intent = any(k in upper_intent for k in _XRP_KEYWORDS)
+    goal_profile = parse_goal_profile(intent)
 
-    # Build the standard yield-based recommendations first
     recommendations: list[dict] = []
-    badge_tags = ["Highest Yield", "Lowest Risk", "Cheapest Route"]
 
     if top_yields:
-        top_apy = top_yields[0].get("apy") or 0
         for i, opp in enumerate(top_yields):
             rank = i + 1
             apy = opp.get("apy")
-            comparison_note = None
-            if rank > 1:
-                delta = top_apy - (apy or 0)
-                comparison_note = f"Offers {delta:.1f} pts lower APY than the top pick, based on the current DeFiLlama snapshot."
-            badge = badge_tags[i] if i < len(badge_tags) else f"Option #{rank}"
             symbol = opp.get("symbol", "USDC").split("-")[0]
+            # Risk defaults based on protocol audit/type (TVL is used separately as a liquidity signal)
+            proj = (opp.get("project") or "").lower()
+            risk_level = "low" if "aave" in proj or "sparkdex" in proj else "medium"
+
             recommendations.append(
                 {
                     "rank": rank,
@@ -44,7 +28,7 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                     "protocol": opp["project"],
                     "estimatedApy": apy,
                     "estimatedFeesPct": 0.3,
-                    "riskLevel": _risk_from_tvl(opp.get("tvlUsd")),
+                    "riskLevel": risk_level,
                     "steps": [
                         f'Review intent: "{intent}"',
                         f"Bridge/swap {symbol} to {opp['chain']} via LI.FI",
@@ -53,12 +37,11 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                     ],
                     "explanation": (
                         "This is a simulated recommendation (no live OPENROUTER_API_KEY configured, "
-                        "or the live call failed) generated from the current DeFiLlama snapshot for "
-                        "your intent."
+                        "or the live call failed) evaluated deterministically against your Goal Profile."
                     ),
                     "citedOpportunities": [opp["poolId"]],
-                    "comparisonNote": comparison_note,
-                    "badgeTag": badge,
+                    "comparisonNote": None,
+                    "badgeTag": None,
                     "fromToken": symbol,
                     "toToken": symbol,
                     "fromChain": "Flare",
@@ -67,15 +50,14 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                 }
             )
 
-    # If intent involves XRP and no native XRP pathway was recommended, prepend
-    # the FAssets mint-and-earn pathway as the first recommendation.
+    # Candidate pathway for XRP / FXRP when intent involves XRP
     if is_xrp_intent:
         xrp_strategy = {
             "rank": 1,
             "strategy": "Mint FTestXRP (FAssets) → Explore Flare DeFi yield",
             "chain": "Flare",
             "protocol": "Flare FAssets",
-            "estimatedApy": None,   # No live APY — honest null, not fabricated
+            "estimatedApy": None,
             "estimatedFeesPct": None,
             "riskLevel": "medium",
             "steps": [
@@ -92,20 +74,18 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
             ),
             "citedOpportunities": [],
             "comparisonNote": None,
-            "badgeTag": "FAssets Pathway",
+            "badgeTag": None,
             "fromToken": "XRP",
             "toToken": "FTestXRP",
             "fromChain": "XRPL",
             "toChain": "Flare (Coston2)",
             "suggestedAmount": None,
         }
-        # Prepend and re-rank
-        recommendations = [xrp_strategy] + [
-            {**r, "rank": r["rank"] + 1} for r in recommendations
-        ]
+        recommendations.append(xrp_strategy)
 
     if not recommendations:
         return {
+            "goalProfile": goal_profile,
             "recommendations": [
                 {
                     "rank": 1,
@@ -123,7 +103,8 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
                     ),
                     "citedOpportunities": [],
                     "comparisonNote": None,
-                    "badgeTag": None,
+                    "badgeTag": "Best Match",
+                    "evidence": ["✓ Verified intent constraints"],
                     "fromToken": None,
                     "toToken": None,
                     "fromChain": None,
@@ -133,7 +114,9 @@ def simulate_recommendation(intent: str, context: dict) -> dict:
             ]
         }
 
-    return {"recommendations": recommendations[:3]}
+    # Run deterministic scoring, evidence checkmarks generation, and Best Match assignment
+    ranked = score_and_rank_recommendations(recommendations, goal_profile, context)
+    return {"goalProfile": goal_profile, "recommendations": ranked[:3]}
 
 
 def simulate_alert_explanation(position: dict, opportunity: dict) -> str:
