@@ -2,6 +2,10 @@
 
 import { DynamicGlobe } from "./DynamicGlobe";
 import { LandingNavbar } from "./LandingNavbar";
+import { ProductCard } from "./ProductCard";
+import { WorkflowNarrative } from "./WorkflowNarrative";
+import { EcosystemBadge } from "./EcosystemBadge";
+import { BoltIcon, BracketsIcon, CpuIcon, LayersIcon, PulseIcon, RouteIcon, SwapIcon } from "./icons";
 
 interface LandingPageProps {
   onLaunchApp: () => void;
@@ -94,35 +98,38 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="rounded-2xl border border-white/10 bg-panel/70 p-8 flex flex-col gap-4 backdrop-blur-xl">
-            <span className="text-2xl">🧠</span>
-            <h3 className="text-xl font-bold text-ivory">AI Intent Parsing</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed font-sans">
-              Describe target yield, risk tolerance, and asset constraints in plain language. LLM reasoning parses parameters into structured execution schemas.
-            </p>
-          </div>
+          <ProductCard
+            index={0}
+            accent="sage"
+            icon={<BracketsIcon />}
+            title="AI Intent Parsing"
+            description="Describe target yield, risk tolerance, and asset constraints in plain language. LLM reasoning parses parameters into structured execution schemas."
+            tags={["LLM Reasoning", "Structured Schema"]}
+          />
 
-          <div className="rounded-2xl border border-white/10 bg-panel/70 p-8 flex flex-col gap-4 backdrop-blur-xl">
-            <span className="text-2xl">⚡</span>
-            <h3 className="text-xl font-bold text-ivory">Flare FTSOv2 Oracle Data</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed font-sans">
-              Real-time decentralized price feed attestation ensuring pricing accuracy and collateral valuation safety across all active routes.
-            </p>
-          </div>
+          <ProductCard
+            index={1}
+            accent="amber"
+            icon={<BoltIcon />}
+            title="Flare FTSOv2 Oracle Data"
+            description="Real-time decentralized price feed attestation ensuring pricing accuracy and collateral valuation safety across all active routes."
+            tags={["Sub-second Feeds", "Decentralized"]}
+          />
 
-          <div className="rounded-2xl border border-white/10 bg-panel/70 p-8 flex flex-col gap-4 backdrop-blur-xl">
-            <span className="text-2xl">🔗</span>
-            <h3 className="text-xl font-bold text-ivory">Multi-Chain LI.FI Aggregation</h3>
-            <p className="text-xs text-neutral-300 leading-relaxed font-sans">
-              Cross-chain DEX and bridge liquidity routing across Ethereum, Flare, Arbitrum, Avalanche, Polygon, and Base.
-            </p>
-          </div>
+          <ProductCard
+            index={2}
+            accent="brand"
+            icon={<RouteIcon />}
+            title="Multi-Chain LI.FI Aggregation"
+            description="Cross-chain DEX and bridge liquidity routing across Ethereum, Flare, Arbitrum, Avalanche, Polygon, and Base."
+            tags={["6+ Chains", "DEX + Bridge"]}
+          />
         </div>
       </section>
 
       {/* 4. How It Works Section */}
-      <section id="how-it-works" className="mx-auto max-w-4xl px-4 py-24 border-t border-white/10">
-        <div className="flex flex-col items-center text-center gap-3 mb-16">
+      <section id="how-it-works" className="mx-auto max-w-5xl px-4 py-24 border-t border-white/10">
+        <div className="flex flex-col items-center text-center gap-3 mb-20">
           <span className="text-xs font-mono-tech uppercase tracking-widest text-amber font-bold">
             Workflow Architecture
           </span>
@@ -131,45 +138,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           </h2>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-[#121217]/90 p-8 font-mono-tech text-xs sm:text-sm max-w-xl mx-auto shadow-2xl">
-          <div className="flex flex-col items-start gap-4 font-mono-tech">
-            <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
-              <span className="text-neutral-400 text-xs block">Wallet</span>
-              <strong className="text-base font-bold text-white block mt-0.5">5,000 FLR</strong>
-            </div>
-
-            <div className="w-full text-center text-neutral-500 font-bold text-sm">↓</div>
-
-            <div className="w-full rounded-xl border border-accent/40 bg-accent/10 p-4">
-              <span className="text-accent text-xs font-bold block">FTSOv2</span>
-              <strong className="text-sm font-bold text-accent block mt-0.5">FLR/USD = $0.0061</strong>
-            </div>
-
-            <div className="w-full text-center text-neutral-500 font-bold text-sm">↓</div>
-
-            <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4">
-              <span className="text-neutral-300 font-medium">Portfolio value = <strong className="text-white font-bold">$30.50</strong></span>
-            </div>
-
-            <div className="w-full text-center text-neutral-500 font-bold text-sm">↓</div>
-
-            <div className="w-full rounded-xl border border-white/10 bg-white/5 p-4 text-neutral-300 font-medium">
-              Yield opportunities
-            </div>
-
-            <div className="w-full text-center text-neutral-500 font-bold text-sm">↓</div>
-
-            <div className="w-full rounded-xl border border-amber/40 bg-amber/10 p-4 text-amber font-bold">
-              AI ranking
-            </div>
-
-            <div className="w-full text-center text-neutral-500 font-bold text-sm">↓</div>
-
-            <div className="w-full rounded-xl border border-success/40 bg-success/15 p-4 text-emerald-400 font-bold">
-              Recommendation
-            </div>
-          </div>
-        </div>
+        <WorkflowNarrative />
       </section>
 
       {/* 5. Technology Section */}
@@ -184,19 +153,23 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono-tech">
-          <div className="rounded-2xl border border-white/10 bg-panel/80 p-6 flex flex-col gap-3">
-            <span className="text-accent font-bold text-sm">FLARE FTSOv2 ORACLE PRICE FEEDS</span>
-            <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-              Decentralized, sub-second native price feeds ensuring real-time portfolio valuation and collateral safety.
-            </p>
-          </div>
+          <ProductCard
+            index={0}
+            accent="sage"
+            icon={<PulseIcon />}
+            title="Flare FTSOv2 Oracle Price Feeds"
+            description="Decentralized, sub-second native price feeds ensuring real-time portfolio valuation and collateral safety."
+            tags={["Real-time Valuation", "Collateral Safety"]}
+          />
 
-          <div className="rounded-2xl border border-white/10 bg-panel/80 p-6 flex flex-col gap-3">
-            <span className="text-amber font-bold text-sm">LI.FI DEX &amp; BRIDGE ENGINE</span>
-            <p className="text-xs text-neutral-300 font-sans leading-relaxed">
-              Unified cross-chain bridge and swap routing API optimizing transaction paths for minimum gas and maximum yield retention.
-            </p>
-          </div>
+          <ProductCard
+            index={1}
+            accent="amber"
+            icon={<SwapIcon />}
+            title="LI.FI DEX & Bridge Engine"
+            description="Unified cross-chain bridge and swap routing API optimizing transaction paths for minimum gas and maximum yield retention."
+            tags={["Gas Optimized", "Unified API"]}
+          />
         </div>
       </section>
 
@@ -211,19 +184,35 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           </h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono-tech text-xs">
-          <div className="rounded-xl border border-white/10 bg-panel p-4 text-center text-ivory font-bold">
-            Flare FTSOv2
-          </div>
-          <div className="rounded-xl border border-white/10 bg-panel p-4 text-center text-ivory font-bold">
-            LI.FI SDK
-          </div>
-          <div className="rounded-xl border border-white/10 bg-panel p-4 text-center text-ivory font-bold">
-            DeFiLlama
-          </div>
-          <div className="rounded-xl border border-white/10 bg-panel p-4 text-center text-ivory font-bold">
-            OpenRouter
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 font-mono-tech">
+          <EcosystemBadge
+            index={0}
+            accent="sage"
+            icon={<BoltIcon className="h-4 w-4" />}
+            name="Flare FTSOv2"
+            description="Oracle price feeds"
+          />
+          <EcosystemBadge
+            index={1}
+            accent="amber"
+            icon={<SwapIcon className="h-4 w-4" />}
+            name="LI.FI SDK"
+            description="Bridge & swap routing"
+          />
+          <EcosystemBadge
+            index={2}
+            accent="brand"
+            icon={<LayersIcon className="h-4 w-4" />}
+            name="DeFiLlama"
+            description="Yield & TVL data"
+          />
+          <EcosystemBadge
+            index={3}
+            accent="success"
+            icon={<CpuIcon className="h-4 w-4" />}
+            name="OpenRouter"
+            description="LLM inference layer"
+          />
         </div>
       </section>
 
