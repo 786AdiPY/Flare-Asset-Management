@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import createGlobe from "cobe";
-import type { Arc } from "cobe";
+import type { Arc, Marker } from "cobe";
 
 const MARKER_DATA = [
   { lat: 48.8566, lng: 2.3522, label: "FLR — Flare FTSOv2" },
@@ -12,12 +12,106 @@ const MARKER_DATA = [
   { lat: 35.6762, lng: 139.65, label: "AVAX — Avalanche C-Chain" },
 ];
 
-const ALL_ARCS: Arc[] = [
-  { from: [40.7128, -74.006], to: [48.8566, 2.3522], color: [0.85, 0.85, 0.85] },
-  { from: [48.8566, 2.3522], to: [37.7749, -122.4194], color: [0.85, 0.85, 0.85] },
-  { from: [40.7128, -74.006], to: [51.5074, -0.1278], color: [0.85, 0.85, 0.85] },
-  { from: [48.8566, 2.3522], to: [35.6762, 139.65], color: [0.85, 0.85, 0.85] },
+// Index pairs into MARKER_DATA — a connected mesh so assets have several
+// non-overlapping paths to travel, keeping simultaneous transfers visually distinct.
+const ROUTES: [number, number][] = [
+  [1, 0],
+  [0, 2],
+  [1, 3],
+  [0, 4],
+  [2, 4],
+  [3, 4],
+  [1, 2],
+  [3, 0],
 ];
+
+// Two restrained brand tones, alternated per lane — enough to read as distinct
+// flows without turning into a multicolor toy palette.
+const ASSET_COLORS: [number, number, number][] = [
+  [0.957, 0.945, 0.914], // ivory
+  [0.698, 0.784, 0.729], // sage
+];
+
+const ASSET_COUNT = 4;
+const TRAVEL_MS_MIN = 4200;
+const TRAVEL_MS_MAX = 7000;
+const RESPAWN_DELAY_MIN = 300;
+const RESPAWN_DELAY_MAX = 1600;
+
+type Vec3 = { x: number; y: number; z: number };
+
+function toCartesian(lat: number, lng: number): Vec3 {
+  const lr = (lat * Math.PI) / 180;
+  const gr = (lng * Math.PI) / 180;
+  return {
+    x: Math.cos(lr) * Math.sin(gr),
+    y: Math.sin(lr),
+    z: Math.cos(lr) * Math.cos(gr),
+  };
+}
+
+function toLatLng(v: Vec3): [number, number] {
+  const lat = (Math.asin(Math.max(-1, Math.min(1, v.y))) * 180) / Math.PI;
+  const lng = (Math.atan2(v.x, v.z) * 180) / Math.PI;
+  return [lat, lng];
+}
+
+// Spherical linear interpolation — gives a natural great-circle path across the
+// globe surface rather than a straight cut through lat/lng space.
+function slerp(a: Vec3, b: Vec3, t: number): Vec3 {
+  const dot = Math.max(-1, Math.min(1, a.x * b.x + a.y * b.y + a.z * b.z));
+  const theta = Math.acos(dot);
+  if (theta < 1e-6) return a;
+  const sinTheta = Math.sin(theta);
+  const wa = Math.sin((1 - t) * theta) / sinTheta;
+  const wb = Math.sin(t * theta) / sinTheta;
+  return {
+    x: a.x * wa + b.x * wb,
+    y: a.y * wa + b.y * wb,
+    z: a.z * wa + b.z * wb,
+  };
+}
+
+function dim(c: [number, number, number], f: number): [number, number, number] {
+  return [c[0] * f, c[1] * f, c[2] * f];
+}
+
+function randRange(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+interface AssetState {
+  routeIdx: number;
+  reversed: boolean;
+  progress: number;
+  speedPerMs: number;
+  color: [number, number, number];
+  state: "traveling" | "waiting";
+  waitUntil: number;
+}
+
+function pickRoute(assets: AssetState[], forIdx: number): number {
+  const inUse = new Set(
+    assets
+      .filter((a, i) => i !== forIdx && a.state === "traveling")
+      .map((a) => a.routeIdx)
+  );
+  const free = ROUTES.map((_, i) => i).filter((i) => !inUse.has(i));
+  const pool = free.length > 0 ? free : ROUTES.map((_, i) => i);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function spawnAsset(assets: AssetState[], idx: number, color: [number, number, number]): AssetState {
+  return {
+    routeIdx: pickRoute(assets, idx),
+    reversed: Math.random() < 0.5,
+    progress: 0,
+    speedPerMs: 1 / randRange(TRAVEL_MS_MIN, TRAVEL_MS_MAX),
+    color,
+    state: "traveling",
+    waitUntil: 0,
+  };
+}
 
 function projectMarker(
   lat: number,
@@ -67,12 +161,22 @@ export function DynamicGlobe() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const dpr = Math.min(window.devicePixelRatio, 2);
+    // Cap DPR — full retina (2x) resolution on a globe this size is the single
+    // biggest cost per frame and what mainly shows up as scroll jank.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let vw = window.innerWidth;
     let cW = vw * dpr;
-    let cH = Math.round(vw * 0.65 * dpr);
-    const SCALE = 1.8;
+    let cH = Math.round(vw * 0.56 * dpr);
+    const SCALE = 1.65;
     const THETA = 0.25;
+    const PHI_SPEED_PER_MS = 0.00012;
+
+    const assets: AssetState[] = Array.from({ length: ASSET_COUNT }, (_, i) => {
+      const a = spawnAsset([], i, ASSET_COLORS[i % ASSET_COLORS.length]);
+      // Stagger initial progress so assets don't all appear to depart at once.
+      a.progress = Math.random();
+      return a;
+    });
 
     const globe = createGlobe(canvas, {
       devicePixelRatio: dpr,
@@ -84,35 +188,96 @@ export function DynamicGlobe() {
       diffuse: 1.35,
       scale: SCALE,
       offset: [0, cH * 0.28],
-      mapSamples: 24000,
+      mapSamples: 16000,
       mapBrightness: 4.8,
       baseColor: [0.06, 0.08, 0.1],
       markerColor: [0.85, 0.85, 0.85],
       glowColor: [0.12, 0.14, 0.18],
       markers: MARKER_DATA.map((m) => ({
         location: [m.lat, m.lng] as [number, number],
-        size: 0.008, // Small crisp dot
+        size: 0.008,
       })),
-      arcs: [ALL_ARCS[0]],
+      arcs: [],
       arcColor: [0.85, 0.85, 0.85],
-      arcWidth: 0.05,
-      arcHeight: 0.2,
+      arcWidth: 0.028,
+      arcHeight: 0.14,
     });
 
-    // Cycle route arcs
-    let arcIdx = 0;
-    const arcTimer = setInterval(() => {
-      arcIdx = (arcIdx + 1) % ALL_ARCS.length;
-      globe.update({ arcs: [ALL_ARCS[arcIdx]] });
-    }, 3000);
+    // Pause all work while the globe is scrolled out of view — this is what was
+    // causing the scroll lag, since the render loop kept driving WebGL redraws
+    // even when nothing was visible.
+    let isVisible = true;
+    let animId: number | null = null;
+    let lastFrameTime = performance.now();
 
-    // Continuous smooth animation loop
-    let animId: number;
-    const loop = () => {
+    const buildFrame = (now: number) => {
+      const dt = Math.min(now - lastFrameTime, 100);
+      lastFrameTime = now;
+
       if (!isDraggingRef.current) {
-        phiRef.current += 0.002;
+        phiRef.current += PHI_SPEED_PER_MS * dt;
       }
-      globe.update({ phi: phiRef.current });
+
+      const hubMarkers: Marker[] = MARKER_DATA.map((m) => ({
+        location: [m.lat, m.lng] as [number, number],
+        size: 0.008,
+      }));
+
+      const travelMarkers: Marker[] = [];
+      const activeArcs: Arc[] = [];
+
+      assets.forEach((asset, i) => {
+        if (asset.state === "waiting") {
+          if (now >= asset.waitUntil) {
+            assets[i] = spawnAsset(assets, i, asset.color);
+          }
+          return;
+        }
+
+        asset.progress += asset.speedPerMs * dt;
+        if (asset.progress >= 1) {
+          asset.state = "waiting";
+          asset.waitUntil = now + randRange(RESPAWN_DELAY_MIN, RESPAWN_DELAY_MAX);
+          return;
+        }
+
+        const [fromIdx, toIdx] = ROUTES[asset.routeIdx];
+        const fromHub = MARKER_DATA[asset.reversed ? toIdx : fromIdx];
+        const toHub = MARKER_DATA[asset.reversed ? fromIdx : toIdx];
+        const a = toCartesian(fromHub.lat, fromHub.lng);
+        const b = toCartesian(toHub.lat, toHub.lng);
+
+        activeArcs.push({
+          from: [fromHub.lat, fromHub.lng],
+          to: [toHub.lat, toHub.lng],
+          color: dim(asset.color, 0.2),
+        });
+
+        // A soft halo behind a small core, with a long, smoothly-fading tail —
+        // reads as a signal traveling the wire rather than a bouncing marble.
+        const t = asset.progress;
+        [
+          { t, size: 0.026, fade: 0.14 },
+          { t, size: 0.015, fade: 1 },
+          { t: Math.max(0, t - 0.02), size: 0.012, fade: 0.5 },
+          { t: Math.max(0, t - 0.045), size: 0.009, fade: 0.3 },
+          { t: Math.max(0, t - 0.075), size: 0.007, fade: 0.16 },
+          { t: Math.max(0, t - 0.11), size: 0.005, fade: 0.08 },
+        ].forEach((pt) => {
+          const [lat, lng] = toLatLng(slerp(a, b, pt.t));
+          travelMarkers.push({
+            location: [lat, lng],
+            size: pt.size,
+            color: dim(asset.color, pt.fade),
+          });
+        });
+      });
+
+      globe.update({
+        phi: phiRef.current,
+        markers: [...hubMarkers, ...travelMarkers],
+        arcs: activeArcs,
+      });
 
       const cssW = cW / dpr;
       const cssH = cH / dpr;
@@ -142,10 +307,39 @@ export function DynamicGlobe() {
           el.style.display = "none";
         }
       });
+    };
 
+    const loop = () => {
+      buildFrame(performance.now());
       animId = requestAnimationFrame(loop);
     };
-    loop();
+
+    const startLoop = () => {
+      if (animId !== null) return;
+      lastFrameTime = performance.now();
+      animId = requestAnimationFrame(loop);
+    };
+
+    const stopLoop = () => {
+      if (animId === null) return;
+      cancelAnimationFrame(animId);
+      animId = null;
+    };
+
+    startLoop();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisible = entry.isIntersecting;
+        if (isVisible) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0 }
+    );
+    if (containerRef.current) observer.observe(containerRef.current);
 
     // Window-level mouse/touch drag handlers for 100% reliable rotation anywhere
     const onPointerDown = (e: PointerEvent) => {
@@ -183,23 +377,29 @@ export function DynamicGlobe() {
     };
     window.addEventListener("scroll", onScroll, { passive: true });
 
-    // Resize
+    // Resize (debounced to a single rAF so rapid resize events don't thrash layout)
+    let resizeRaf: number | null = null;
     const onResize = () => {
-      vw = window.innerWidth;
-      cW = vw * dpr;
-      cH = Math.round(vw * 0.65 * dpr);
-      globe.update({
-        width: cW,
-        height: cH,
-        scale: SCALE,
-        offset: [0, cH * 0.28],
+      if (resizeRaf !== null) return;
+      resizeRaf = requestAnimationFrame(() => {
+        resizeRaf = null;
+        vw = window.innerWidth;
+        cW = vw * dpr;
+        cH = Math.round(vw * 0.56 * dpr);
+        globe.update({
+          width: cW,
+          height: cH,
+          scale: SCALE,
+          offset: [0, cH * 0.28],
+        });
       });
     };
     window.addEventListener("resize", onResize);
 
     return () => {
-      cancelAnimationFrame(animId);
-      clearInterval(arcTimer);
+      stopLoop();
+      if (resizeRaf !== null) cancelAnimationFrame(resizeRaf);
+      observer.disconnect();
       globe.destroy();
       if (container) {
         container.removeEventListener("pointerdown", onPointerDown);
