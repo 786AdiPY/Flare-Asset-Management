@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { NavBar } from "@/components/NavBar";
-import { HoldingsPanel } from "@/components/HoldingsPanel";
 import { IntentForm } from "@/components/IntentForm";
 import { PriceTicker } from "@/components/PriceTicker";
 import { RecommendationCard } from "@/components/RecommendationCard";
@@ -164,14 +163,27 @@ export default function Home() {
     setCurrentStep(walletAddress ? 3 : 1);
   }
 
+  // Check URL query parameter on mount for view=app
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("view") === "app") {
+        setView("app");
+      }
+    }
+  }, []);
+
   if (view === "landing") {
     return <LandingPage onLaunchApp={() => setView("app")} />;
   }
 
   return (
     <div className="min-h-screen bg-obsidian text-ivory">
-      {/* Top App Navigation Bar (Router, Holdings & Alerts, Yields, Feeds, Verify, Connect Wallet) */}
-      <NavBar onRouterClick={() => setView("app")} />
+      {/* Top App Navigation Bar (Router, Holdings & Alerts, Yields, Feeds, Connect Wallet) */}
+      <NavBar
+        onRouterClick={() => setView("app")}
+        onLandingClick={() => setView("landing")}
+      />
 
       <main className="mx-auto flex max-w-4xl flex-col gap-8 px-4 pb-16 pt-4">
         <div className="flex flex-col gap-2 text-center md:text-left">
@@ -184,53 +196,6 @@ export default function Home() {
         </div>
 
         <PriceTicker />
-
-        {/* Router Calculation Flow (FTSOv2 Price Dependent) */}
-        <div className="rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-5 shadow-xl font-mono-tech text-xs">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <span className="text-xs font-bold text-accent tracking-wider uppercase">
-              FTSOv2 Price-Dependent Calculation Flow
-            </span>
-            <span className="text-[10px] text-neutral-400">Live Valuation Engine</span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-[11px]">
-            <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
-              <div className="text-neutral-400 text-[10px]">Wallet</div>
-              <strong className="text-white font-bold block mt-0.5">5,000 FLR</strong>
-            </div>
-
-            <div className="rounded-xl border border-accent/40 bg-accent/15 p-2.5">
-              <div className="text-accent text-[10px] font-bold">FTSOv2 · FLR</div>
-              <strong className="text-accent font-bold block mt-0.5">FLR/USD = $0.0061</strong>
-            </div>
-
-            <div className="rounded-xl border border-amber/40 bg-amber/15 p-2.5">
-              <div className="text-amber text-[10px] font-bold">FTSOv2 · XRP</div>
-              <strong className="text-amber font-bold block mt-0.5">XRP/USD = live</strong>
-            </div>
-
-            <div className="rounded-xl border border-white/10 bg-white/5 p-2.5">
-              <div className="text-neutral-400 text-[10px]">Yields</div>
-              <strong className="text-neutral-200 font-semibold block mt-0.5">Opportunities</strong>
-            </div>
-
-            <div className="rounded-xl border border-amber/40 bg-amber/15 p-2.5">
-              <div className="text-amber text-[10px] font-bold">AI Ranking</div>
-              <strong className="text-amber font-bold block mt-0.5">Evaluated</strong>
-            </div>
-
-            <div className="rounded-xl border border-success/40 bg-success/15 p-2.5">
-              <div className="text-emerald-400 text-[10px] font-bold">Recommendation</div>
-              <strong className="text-emerald-400 font-bold block mt-0.5">Generated</strong>
-            </div>
-          </div>
-        </div>
-
-        {/* Step 1 & 2: Wallet & Portfolio Holdings */}
-      <section className="flex flex-col gap-4">
-        <HoldingsPanel onSaved={() => setCurrentStep(3)} />
-      </section>
 
       {/* Step 3: Intent Input */}
       <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-panel/80 backdrop-blur-xl p-6 shadow-2xl">

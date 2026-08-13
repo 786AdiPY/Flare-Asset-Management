@@ -170,6 +170,7 @@ export function DynamicGlobe() {
     const SCALE = 1.65;
     const THETA = 0.25;
     const PHI_SPEED_PER_MS = 0.00012;
+    const OFFSET_Y_RATIO = 0.28;
 
     const assets: AssetState[] = Array.from({ length: ASSET_COUNT }, (_, i) => {
       const a = spawnAsset([], i, ASSET_COLORS[i % ASSET_COLORS.length]);
@@ -187,16 +188,13 @@ export function DynamicGlobe() {
       dark: 1,
       diffuse: 1.35,
       scale: SCALE,
-      offset: [0, cH * 0.28],
+      offset: [0, cH * OFFSET_Y_RATIO],
       mapSamples: 16000,
       mapBrightness: 4.8,
       baseColor: [0.06, 0.08, 0.1],
       markerColor: [0.85, 0.85, 0.85],
       glowColor: [0.12, 0.14, 0.18],
-      markers: MARKER_DATA.map((m) => ({
-        location: [m.lat, m.lng] as [number, number],
-        size: 0.008,
-      })),
+      markers: [], // Hub dots render as HTML overlays; canvas markers carry only the traveling assets.
       arcs: [],
       arcColor: [0.85, 0.85, 0.85],
       arcWidth: 0.028,
@@ -217,11 +215,6 @@ export function DynamicGlobe() {
       if (!isDraggingRef.current) {
         phiRef.current += PHI_SPEED_PER_MS * dt;
       }
-
-      const hubMarkers: Marker[] = MARKER_DATA.map((m) => ({
-        location: [m.lat, m.lng] as [number, number],
-        size: 0.008,
-      }));
 
       const travelMarkers: Marker[] = [];
       const activeArcs: Arc[] = [];
@@ -275,13 +268,13 @@ export function DynamicGlobe() {
 
       globe.update({
         phi: phiRef.current,
-        markers: [...hubMarkers, ...travelMarkers],
+        markers: travelMarkers,
         arcs: activeArcs,
       });
 
       const cssW = cW / dpr;
       const cssH = cH / dpr;
-      const offYcss = (cH * 0.28) / dpr;
+      const offYcss = (cH * OFFSET_Y_RATIO) / dpr;
 
       MARKER_DATA.forEach((m, i) => {
         const el = hoverTargetRefs.current[i];
@@ -390,7 +383,7 @@ export function DynamicGlobe() {
           width: cW,
           height: cH,
           scale: SCALE,
-          offset: [0, cH * 0.28],
+          offset: [0, cH * OFFSET_Y_RATIO],
         });
       });
     };
@@ -432,10 +425,15 @@ export function DynamicGlobe() {
             className="absolute pointer-events-auto cursor-pointer -translate-x-1/2 -translate-y-1/2 group"
             style={{ top: 0, left: 0, width: "36px", height: "36px" }}
           >
-            {/* Soft pulse/hover ring around dot */}
-            <div className="absolute inset-1.5 rounded-full border border-white/40 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
+            {/* Sleek Greyish-White Dot Indicator (Always Visible) */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {/* Soft pulse aura */}
+              <span className="absolute h-5 w-5 rounded-full bg-white/20 animate-ping opacity-35" />
+              {/* Crisp greyish-white core dot */}
+              <span className="h-2.5 w-2.5 rounded-full bg-neutral-200 border border-white/90 shadow-[0_0_10px_rgba(255,255,255,0.8)] group-hover:scale-125 transition-transform duration-150" />
+            </div>
 
-            {/* Currency badge tooltip – pops up cleanly when hovering cursor over dot */}
+            {/* Currency badge tooltip – pops up cleanly when pointing cursor at the white dot */}
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 scale-95 group-hover:scale-100 transition-all duration-150 pointer-events-none whitespace-nowrap z-30">
               <div className="px-3 py-1.5 rounded-lg border border-white/30 bg-[#0B0F12]/95 backdrop-blur-md shadow-2xl flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />

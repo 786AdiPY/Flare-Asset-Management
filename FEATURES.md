@@ -1,139 +1,164 @@
-# Features
+# Features & Architecture Overview
 
-A tour of everything in the app, page by page, with what's genuinely live vs.
-clearly-labeled simulated fallback. See `README.md` for setup/run instructions
-and the overall simulate-rather-than-break design principle.
-
-Every page shares one nav bar and one wallet connection (MetaMask or "Use Demo
-Wallet"), persisted in `localStorage` via `frontend/src/lib/walletContext.tsx`
-so it survives page navigation and refresh.
+A comprehensive guide to the **AI-Asset Router** app structure, page routes, backend services, and component architecture.
 
 ---
 
-## Home (`/`) — AI Intent Recommendation Engine
+## Repository & Directory Structure
 
-Describe a financial goal in plain language ("Generate passive income with my
-tokenized gold") and get back **2–3 ranked on-chain strategies**, not just one.
-
-- The backend gathers live context first — Flare FTSO prices, DeFiLlama yield
-  opportunities matched to keywords in the intent (or the connected wallet's
-  saved holdings) — then asks an LLM (via OpenRouter) to rank strategies against
-  that context.
-- The top pick is shown in full (chain, protocol, est. APY/fees, risk, steps,
-  explanation). Alternatives #2 and #3 collapse into expandable cards, each
-  carrying a **`comparisonNote`** — a one-line reason it ranked below the top
-  pick (e.g. "offers 12.3 pts lower APY"). This is the explainable-AI angle
-  from the original pitch: not just *why the winner*, but *why not the others*.
-- **Refine, don't restart.** Once you have a recommendation, the form switches
-  to "Refine your recommendation" — type something like *"make it lower risk"*
-  and the full prior exchange is sent back as conversation history
-  (`ConversationTurn[]`) so the follow-up is contextual, not a fresh cold ask.
-- Risk level in the simulated fallback is derived from pool TVL (≥$5M → low,
-  ≥$1M → medium, else high) as a liquidity/safety proxy — not arbitrary.
-- **Live**: DeFiLlama yields, Flare FTSO prices. **Simulated without a key**:
-  the ranking itself falls back to a deterministic rule engine
-  (`backend/app/services/rule_engine.py`) that ranks by APY and fills in the
-  same comparison-note structure, so refine/rank/compare all still work with
-  zero API keys configured.
-- Endpoint: `POST /api/intent` — `{ intent, walletAddress?, portfolio?, history? }`
-
-## Holdings & Alerts (`/holdings`) — Smart Opportunity Alerts
-
-Save what you actually hold so alerts compare against reality instead of a
-canned demo portfolio.
-
-- **Auto-detect balance.** On connecting a wallet, the page reads its real
-  native FLR balance on-chain (`eth_getBalance` via `web3.py` against
-  `FLARE_RPC_URL`) and offers a one-click "Add to holdings." ERC-20 tokens and
-  other chains aren't auto-detected yet (would need a token list + multicall
-  or a balances API per chain) — add those manually.
-- Manually add/remove holdings with an optional current protocol + APY (unset
-  = idle, 0% baseline).
-- **Save holdings** persists via `POST /api/portfolio` (Supabase if configured,
-  otherwise an in-memory store keyed by wallet address).
-- The alerts panel below re-queries DeFiLlama for each holding's symbol, and
-  surfaces an alert whenever a real qualifying pool beats the current APY by
-  >15% relative, with an AI-generated (or simulated) plain-language
-  explanation of the trade-off and risk.
-- Saving holdings immediately refreshes the alerts panel (no reload needed).
-- **Live**: wallet balance (Flare native), DeFiLlama yields. **Simulated
-  without a key**: alert explanations.
-- Endpoints: `GET /api/wallet/{address}/balance`, `POST`/`GET /api/portfolio`,
-  `GET /api/alerts?wallet=`
-
-## Yields (`/yields`) — Opportunity Explorer
-
-Browse the same DeFiLlama universe the recommendation engine draws from,
-filterable by symbol, with historical context per pool.
-
-- Live pool list (project, chain, symbol, APY, TVL), capped at a believable
-  APY range — DeFiLlama includes thinly-traded reward-farm pools with
-  four/five-digit APYs that are real numbers but not credible recommendations;
-  anything above the cap is filtered out as noise, both here and in the
-  recommendation engine.
-- **30-day APY/TVL history per pool**, fetched lazily on expand (not
-  preloaded for all 20 rows) and rendered as an inline sparkline — because a
-  single-snapshot high APY doesn't tell you if a rate is stable or about to
-  collapse. Sparkline follows this codebase's chart conventions: a single
-  2px line, 10%-opacity area wash, an end-dot, and a hover crosshair +
-  tooltip (see `frontend/src/components/Sparkline.tsx`).
-- **Live**: pool list and history both come straight from `yields.llama.fi`.
-  Simulated fallback (deterministic per pool ID, so repeated views look
-  consistent) only kicks in if DeFiLlama is unreachable.
-- Endpoints: `GET /api/yields?keywords=&chain=`, `GET /api/yields/{poolId}/history?days=`
-
-## Feeds (`/feeds`) — Flare FTSO Price Feeds
-
-Every Flare FTSOv2 feed this app knows how to read, refreshed every 30s.
-
-- Broadened from the original 3 (FLR, BTC, ETH) to 11 category-1 (crypto)
-  feeds: FLR, SGB, BTC, ETH, XRP, LTC, DOGE, ADA, ALGO, USDT, USDC — all
-  against USD.
-- Feed IDs are **derived programmatically**, not hand-typed: 1 category byte +
-  ASCII symbol, right-padded to 21 bytes
-  (`backend/app/services/flare_ftso.py:_build_feed_id`), the same encoding
-  verified against Flare's own FLR/USD, BTC/USD, ETH/USD examples. All 11
-  currently resolve live against Coston2 — any that don't (e.g. if a feed
-  isn't active on a given network) transparently fall back to simulated
-  rather than erroring the whole page.
-- Registry resolution (`FlareContractRegistry` → `FtsoV2` address) is cached
-  after the first successful call; all feed reads run **concurrently**
-  (`asyncio.gather`), not sequentially — the initial version of this page
-  serially awaited 11 RPC round-trips and took ~35s to load, parallelizing
-  brought it under 5s.
-- Endpoint: `GET /api/prices/all`
-
-## Verify (`/verify`) — Flare Data Connector
-
-Submit a cross-chain attestation request and watch it move through FDC's
-actual phases.
-
-- This is explicitly **not** a live FDC integration — a real one needs a live
-  source-chain transaction, a funded attestation-request account, and polling
-  across external verifier servers plus the Data Availability Layer
-  (documented in `backend/app/services/flare_fdc.py`, with links to Flare's
-  FDC docs). That's out of scope for this scaffold.
-- What's implemented is a **phase-accurate local simulation**: submitting a
-  request creates a job that progresses `collecting` (90s, matching FDC's
-  real collection window) → `voting` (30s) → `finalized`, at which point it
-  returns a Merkle proof and voting round ID. The frontend polls every 3s and
-  renders a phase stepper.
-- Always labeled `simulated: true` with an explicit reason — this page is
-  about showing the *shape* of FDC's flow accurately, not claiming to be a
-  live verifier.
-- Endpoints: `POST /api/verify`, `GET /api/verify/{jobId}`
+```
+FLare/
+├── frontend/                       # Next.js 14 App Router Frontend
+│   └── src/
+│       ├── app/                    # Page Routes
+│       │   ├── page.tsx            # Home: Landing Page & Main Goal-Aware Asset Router
+│       │   ├── holdings/page.tsx   # Portfolio Holdings & Goal-Matched Smart Alerts
+│       │   ├── yields/page.tsx     # Cross-Chain DeFi Yield Explorer (DeFiLlama + Sparklines)
+│       │   └── feeds/page.tsx      # Live Flare FTSOv2 Price Oracle Feeds (11 category-1 feeds)
+│       ├── components/             # UI Components
+│       │   ├── landing/            # LandingPage, DynamicGlobe (WebGL cobe 3/5 sphere), LandingNavbar
+│       │   ├── NavBar.tsx          # Header Navigation Bar with Logo & Route Links
+│       │   ├── IntentForm.tsx      # Natural Language Intent Input & Prompt Examples
+│       │   ├── RecommendationCard.tsx # Goal-Aware Strategy Cards ("Why this option?", evidence, "Best Match")
+│       │   ├── FAssetsCard.tsx     # Contextual Coston2 FTestXRP / FXRP Onboarding Card
+│       │   ├── HoldingsPanel.tsx   # On-chain Native FLR Balance Auto-detection & Portfolio Saver
+│       │   ├── AlertsPanel.tsx     # Goal-Matched Smart Opportunity Alerts
+│       │   ├── PriceTicker.tsx     # Live FTSOv2 Price Ticker Bar (FLR, BTC, ETH, XRP)
+│       │   ├── RoutePreviewModal.tsx # Non-custodial LI.FI Route & Bridge Execution Modal
+│       │   ├── Sparkline.tsx       # 30-Day Yield/TVL Historical Sparkline Chart
+│       │   ├── TxStatusCard.tsx    # Step-by-Step Route Broadcast & Transaction Tracker
+│       │   └── WalletConnect.tsx   # MetaMask & Demo Wallet Connection Toggle
+│       └── lib/                    # Client Services & State
+│           ├── api.ts              # Backend API Client
+│           ├── types.ts            # TypeScript Models (GoalProfile, Recommendation, Alert, etc.)
+│           ├── wallet.ts           # MetaMask EIP-1193 Transaction Sender
+│           └── walletContext.tsx   # Global Wallet State & localStorage Persistence
+│
+└── backend/                        # FastAPI Python Backend Engine
+    └── app/
+        ├── main.py                 # FastAPI Application Server & CORS Configuration
+        ├── config.py               # Environment Variables & Settings
+        ├── models/
+        │   └── schemas.py          # Pydantic Schemas (GoalProfile, Recommendation, IntentResponse, etc.)
+        ├── routers/                # API Endpoints
+        │   ├── intent.py           # POST /api/intent (Goal-Aware Router Endpoint)
+        │   ├── fassets.py          # GET /api/fassets/ftestxrp (Live Coston2 Parameters)
+        │   ├── alerts.py           # GET /api/alerts (Goal-Matched Opportunity Alerts)
+        │   ├── prices.py           # GET /api/prices (FTSOv2 Live Oracle Feeds)
+        │   ├── bridge.py           # POST /api/bridge-quote (LI.FI Quote API)
+        │   ├── yields.py           # GET /api/yields & /history (DeFiLlama Pools)
+        │   ├── portfolio.py        # POST/GET /api/portfolio (Supabase / In-Memory Store)
+        │   └── wallet.py           # GET /api/wallet/{address}/balance (Coston2 On-Chain FLR Balance)
+        └── services/               # Core Decision Engines & On-Chain Integrations
+            ├── goal_engine.py      # Goal Profile Parser & Deterministic Scoring Engine
+            ├── fassets.py          # Contract Registry Resolver for AssetManagerFXRP (Coston2)
+            ├── flare_ftso.py       # Flare FTSOv2 Oracle Price Reader (11 Category-1 Feeds)
+            ├── openrouter.py       # OpenRouter LLM Intent Parsing & Alert Explanations
+            ├── rule_engine.py      # Deterministic Fallback Recommendation Engine
+            ├── defillama.py        # DeFiLlama Yield Opportunities & History Fetcher
+            ├── lifi.py             # LI.FI Cross-Chain Bridge & Swap Route Provider
+            ├── supabase_client.py  # Portfolio Storage Client
+            └── simulation.py       # Fail-Safe Wrapper (`safe_call`) for Graceful Simulated Fallbacks
+```
 
 ---
 
-## Cross-cutting: the simulation-fallback design
+## 1. Landing Page (`/` when view = landing) — 3D Interactive Globe & Onboarding
 
-Every external call (OpenRouter, Flare FTSO, Flare wallet balance, DeFiLlama,
-CoinGecko, LI.FI, Supabase) goes through `safe_call()` in
-`backend/app/services/simulation.py`: try the live call, and on *any* failure
-— missing key, network error, unexpected shape — fall back to a realistic
-simulated value instead of a broken page. Every response carries
-`simulated` + `simulationReason`, and the frontend always renders a
-Live/Simulated badge next to the data it applies to, rather than silently
-presenting fake data as real. Flare FDC is the one exception that's
-*permanently* simulated (see above) since there's no live path to fall back
-from yet.
+An institutional landing page designed to introduce Flare FTSO valuation, cross-chain yield routing, and FAssets.
+
+- **Dynamic 3D Globe (`DynamicGlobe.tsx`)**: Built with WebGL/`cobe` showing 3/5 view of the globe, smooth 360-degree mouse drag rotation, hairline white route arcs, and active data nodes (Flare FTSOv2, XRP XRPL, Ethereum, Base, Arbitrum, Avalanche).
+- **Hover Node Labels**: Hovering over any dot node pops up its chain/currency badge in real-time (`FLR — Flare FTSOv2`, `XRP — XRPL`, `ETH — Ethereum Mainnet`, etc.).
+- **Hero Entry Points**:
+  - `Launch AssetRouter →`: Opens the primary Goal-Aware AssetRouter app interface.
+  - `⚡ Have XRP? Explore Flare →`: Direct single-entry point that launches the router pre-loaded with an XRP/FXRP FAssets discovery query.
+
+---
+
+## 2. Main App Router (`/` when view = app) — Goal-Aware Recommendation Engine
+
+Non-custodial intent routing for tokenized real-world assets and crypto holdings across multiple chains.
+
+### A. Intent → Goal Profile Extraction
+Translates natural-language financial goals (*"I want at least 8% low risk yield on my USDC on Flare"*) into a structured `GoalProfile`:
+- `asset`: Target asset ticker (e.g. `USDC`, `FLR`, `XRP`)
+- `objective`: Primary intent (`yield`, `liquidity`, `preservation`, `growth`, `lowest_cost`)
+- `targetApy`: Explicit target APY (e.g. `8.0%`)
+- `riskTolerance`: User risk preference (`low`, `medium`, `high`)
+- `maxLockDays`: Lockup constraints (`0` for unlocked)
+- `preferredChain`: Target network preference (e.g. `Flare`)
+- `feePreference`: Execution fee preference (`lowest_fees`, `acceptable`)
+
+*Strict Rule*: Only populates constraints explicitly stated by the user; unstated fields remain `null`.
+
+### B. Deterministic Goal-Based Scoring & Ranking
+Instead of picking raw highest APY, the backend scoring engine (`backend/app/services/goal_engine.py`) deterministically scores candidate strategies:
+- **Target APY Fit**: Bonus when APY ≥ target, scaled penalty if below.
+- **Risk Alignment**: Bonus when candidate risk matches user tolerance.
+- **Liquidity Signal**: TVL is evaluated strictly as a **liquidity depth signal** (`$1M+ TVL`), **NOT** as a risk classification.
+- **Fee & Chain Fit**: Scoring boosts for low fees (<0.3%) and matching `preferredChain`.
+- **FAssets / FXRP Pathway**: Evaluated dynamically when relevant (e.g. XRP queries) without forcing it into unrelated requests.
+- **`Best Match` Badge**: Assigned to the #1 ranked pick **AFTER** deterministic scoring.
+- **LLM Boundary**: OpenRouter LLM is used strictly for intent extraction and narrative explanations — **never for generating fake numerical data**.
+
+### C. Recommendation UI & "Why this option?" Evidence Checkmarks
+- **Parsed Goal Profile Chips**: Displays extracted constraint chips above the recommendation cards so users can verify how their request was parsed.
+- **"Why this option?" Section**: Replaces generic AI reasoning with evidence checkmarks backed *only* by supported data:
+  - `✓ Meets target APY (8.4% ≥ 8.0%)`
+  - `✓ Matches low risk preference`
+  - `✓ Fits liquidity requirement ($2.4M TVL)`
+  - `✓ Low execution fee (0.3%)`
+  - `✓ Preferred chain (Flare)`
+- **Explainable Alternatives**: Candidates #2 and #3 collapse into expandable cards with a `comparisonNote` explaining why they ranked below the top pick.
+- **Refine Conversation**: Submitting follow-up requests (*"make it lower risk"*) retains full `ConversationTurn[]` history.
+
+### D. Contextual FAssets / FXRP Card (`FAssetsCard.tsx`)
+Rendered dynamically whenever the user's query involves XRP:
+- **Live Coston2 On-Chain Data**: Reads the deployed `AssetManagerFXRP` (`0xc1Ca88b937d0b528842F95d5731ffB586f4fbDFA`) and `FTestXRP` token (`0x0b6A3645c240605887a5532109323A3E12273dc7`) via the **Flare Contract Registry** (`0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019`).
+- **Live Lot Size**: Displays the live 10.0 XRP lot size requirement.
+- **XRP/USD Oracle Price**: Reads live FTSOv2 price feed.
+- **Manual XRP Amount Preview**: Allows users to preview how many lots their XRP covers without requiring XRPL wallet integration.
+
+### E. LI.FI Non-Custodial Route Execution
+- Clicking **"Select Route & Execute →"** opens `RoutePreviewModal.tsx`, querying LI.FI (`/api/bridge-quote`) for real cross-chain bridge/swap quotes, estimated duration, gas, and slippage.
+- Executes via connected MetaMask wallet (`eth_sendTransaction`), or simulated step-by-step broadcast for Demo Wallet.
+
+---
+
+## 3. Holdings & Opportunity Alerts (`/holdings`)
+
+A dedicated space to manage active portfolio holdings and receive goal-matched alerts.
+
+- **Auto-Detect Native FLR Balance**: Queries real on-chain balance via `eth_getBalance` against `FLARE_RPC_URL` (Coston2).
+- **Manual Asset Portfolio**: Add holdings with symbol, chain, amount, current protocol, and current APY (saved via `POST /api/portfolio` to Supabase or in-memory store).
+- **Goal-Matched Smart Alerts**: Continuously monitors holdings against DeFiLlama yield pools. Triggers alerts only when a new opportunity materially matches the user's requirements:
+  > *"Your current position yields 3.2%. A new 8.4% opportunity now meets your 5.2% target while remaining within your low-risk preference."*
+
+---
+
+## 4. Yields Explorer (`/yields`)
+
+Browse cross-chain DeFi yield opportunities sourced from DeFiLlama.
+
+- **Filtered Opportunity Table**: Filterable by asset keyword and chain. Inflationary/thinly-traded farm pools above 60% APY are automatically filtered out.
+- **30-Day APY & TVL History Sparklines**: Expandable rows lazily fetch 30-day historical data (`GET /api/yields/{poolId}/history`) rendered as custom SVG sparklines with hover crosshairs and tooltips.
+
+---
+
+## 5. Flare FTSOv2 Price Feeds (`/feeds`)
+
+Live dashboard of Flare FTSOv2 oracle feeds refreshed every 30 seconds.
+
+- **11 Category-1 Crypto Feeds**: FLR/USD, SGB/USD, BTC/USD, ETH/USD, XRP/USD, LTC/USD, DOGE/USD, ADA/USD, ALGO/USD, USDT/USD, USDC/USD.
+- **Programmatic Feed ID Encoding**: Feed IDs derived programmatically (`category 0x01` + ASCII symbol right-padded to 21 bytes) as defined by FTSOv2 specification.
+- **Contract Registry Caching**: `FlareContractRegistry` → `FtsoV2` address resolution cached in memory; all feeds fetched concurrently via `asyncio.gather()`.
+
+---
+
+## 6. Resilient Simulation Fallback Architecture
+
+Every external call (OpenRouter LLM, Flare FTSO, Coston2 RPC, DeFiLlama, LI.FI, Supabase) is wrapped in `safe_call()` (`backend/app/services/simulation.py`):
+- Attempts live network/contract call first.
+- On key absence, rate limit, or RPC error, seamlessly falls back to realistic simulated data.
+- Standardized response flag: `simulated: boolean` & `simulationReason: string | null`.
+- Frontend displays `SimulatedBadge` components for complete user transparency.

@@ -15,18 +15,35 @@ natural-language financial intent and a snapshot of live market context (FTSO pr
 DeFi yield opportunities). The user may follow up asking you to refine a prior answer \
 (e.g. "make it lower risk") — treat earlier turns as context for the refinement.
 
+1. Goal Profile Extraction:
+Extract the user's explicit constraints into a "goalProfile" object:
+- asset: ticker or token name if stated (e.g. "USDC", "FLR", "XRP") or null
+- objective: "yield", "liquidity", "preservation", "growth", or "lowest_cost" if stated, or null
+- targetApy: numeric percentage if explicitly stated (e.g. 8.0 for 8%), or null
+- riskTolerance: "low", "medium", or "high" if stated, or null
+- maxLockDays: integer days if lockup constraints mentioned (0 for unlocked), or null
+- preferredChain: target chain name if stated (e.g. "Flare", "Ethereum"), or null
+- feePreference: "lowest_fees" or "acceptable" if stated, or null
+IMPORTANT: Only populate constraints explicitly stated or strongly implied by the user. Leave unspecified fields as null.
+
 Flare Network FAssets context (use when relevant, never force it):
 FAssets (e.g. FXRP, FTestXRP on Coston2 testnet) are trustless ERC-20 wrapped versions of \
 non-smart-contract assets on Flare. FXRP/FTestXRP represent XRP 1:1 and are fully composable \
 in Flare DeFi (lending, LPs, bridging). When a user asks what they can do with XRP on Flare, \
 XRP → FAssets minting is ONE POSSIBLE pathway among others — recommend it only if it genuinely \
-fits their intent (e.g. they want DeFi yield on Flare without selling XRP). Never invent protocol \
-yields, fees, or APY numbers; base all numbers on the market context provided. If no qualifying \
-FXRP opportunity appears in the context, do not fabricate one — instead explain the pathway and \
-note that live opportunities should be checked directly on Flare DeFi protocols.
+fits their intent. Never invent protocol yields, fees, or APY numbers.
 
-Respond with STRICT JSON only, no prose outside the JSON, matching this shape:
+Respond with STRICT JSON only, matching this shape:
 {
+  "goalProfile": {
+    "asset": string|null,
+    "objective": "yield"|"liquidity"|"preservation"|"growth"|"lowest_cost"|null,
+    "targetApy": number|null,
+    "riskTolerance": "low"|"medium"|"high"|null,
+    "maxLockDays": number|null,
+    "preferredChain": string|null,
+    "feePreference": "lowest_fees"|"acceptable"|null
+  },
   "recommendations": [
     {
       "rank": 1,
@@ -50,7 +67,7 @@ Respond with STRICT JSON only, no prose outside the JSON, matching this shape:
   ]
 }
 
-Return 2-3 recommendations ranked best-first (rank 1, 2, 3). Assign an objective badgeTag (e.g. "Highest Yield", "Lowest Risk", "Cheapest Route"). For every recommendation EXCEPT rank 1, set "comparisonNote" to a one-sentence explanation of specifically why it ranked below the top pick. Base every recommendation only on protocols/opportunities present in the provided market context; do not invent fake numerical data."""
+Return 2-3 candidate recommendations. Do not invent fake numerical data."""
 
 
 def _headers() -> dict[str, str]:
@@ -95,14 +112,27 @@ async def call_openrouter(intent: str, context: dict, history: list[dict] | None
 
     content = data["choices"][0]["message"]["content"]
     parsed = json.loads(content)
-    raw_recs = parsed["recommendations"]
+    raw_recs = parsed.get("recommendations", [])
     if not raw_recs:
         raise ValueError("OpenRouter returned zero recommendations")
-    # Validate against the response schema here (inside the "live" call) so any
-    # malformed LLM output raises and gets caught by `safe_call`, which then
-    # falls back to the deterministic rule-engine recommendations.
+
+    # Extract goal profile or parse deterministically as fallback
+    from .goal_engine import parse_goal_profile, score_and_rank_recommendations
+    llm_goal = parsed.get("goalProfile") or {}
+    fallback_goal = parse_goal_profile(intent)
+    # Merge LLM goal with fallback (prefer explicit LLM extraction if non-null)
+    goal_profile = {
+        k: llm_goal.get(k) if llm_goal.get(k) is not None else fallback_goal.get(k)
+        for k in fallback_goal
+    }
+
+    # Validate against Recommendation schema
     validated = [Recommendation.model_validate(r) for r in raw_recs[:3]]
-    return {"recommendations": [r.model_dump() for r in validated]}
+    raw_dicts = [r.model_dump() for r in validated]
+
+    # Run deterministic scoring, evidence generation, and Best Match assignment
+    ranked = score_and_rank_recommendations(raw_dicts, goal_profile, context)
+    return {"goalProfile": goal_profile, "recommendations": ranked}
 
 
 async def explain_alert(position: dict, opportunity: dict) -> str:

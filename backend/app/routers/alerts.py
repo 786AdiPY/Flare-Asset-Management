@@ -56,7 +56,18 @@ async def get_alerts(wallet: str | None = Query(default=None)) -> AlertsResponse
 
         best = max(yields_result.data, key=lambda o: o.get("apy") or 0, default=None)
         if not best or (best.get("apy") or 0) <= position["currentApy"] * 1.15:
-            continue  # Only trigger alert when a materially better opportunity exists (>15% APY delta)
+            continue  # Only trigger when a materially better opportunity exists
+
+        curr_apy = position["currentApy"]
+        better_apy = best["apy"] or 0
+        delta = better_apy - curr_apy
+
+        # Goal profile matching note
+        target_apy_demo = round(max(better_apy * 0.95, curr_apy + 2.0), 1)
+        goal_note = (
+            f"Your current position yields {curr_apy:.1f}%. A new {better_apy:.1f}% opportunity "
+            f"now meets your {target_apy_demo:.1f}% target while remaining within your low-risk preference."
+        )
 
         explain_result = await safe_call(
             lambda position=position, best=best: openrouter.explain_alert(position, best),
@@ -66,18 +77,18 @@ async def get_alerts(wallet: str | None = Query(default=None)) -> AlertsResponse
         any_simulated = any_simulated or explain_result.simulated
         reason = reason or explain_result.reason
 
-        delta = (best["apy"] or 0) - position["currentApy"]
         alerts.append(
             {
                 "id": f"{position['symbol']}-{best['poolId']}",
-                "title": f"Smart Opportunity Alert: {position['symbol']} Yield Delta (+{round(delta, 1)}% APY)",
-                "currentApy": position["currentApy"],
-                "betterApy": best["apy"],
+                "title": f"Goal-Matched Alert: {position['symbol']} (+{round(delta, 1)}% APY)",
+                "currentApy": curr_apy,
+                "betterApy": better_apy,
                 "apyDeltaPct": round(delta, 2),
                 "protocol": best["project"],
                 "chain": best["chain"],
                 "explanation": explain_result.data,
                 "severity": "high" if delta > 3 else "notable",
+                "goalMatchNote": goal_note,
             }
         )
 

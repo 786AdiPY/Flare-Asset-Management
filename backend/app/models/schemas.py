@@ -32,6 +32,16 @@ class IntentRequest(BaseModel):
     history: list[ConversationTurn] = []
 
 
+class GoalProfile(BaseModel):
+    asset: Optional[str] = None
+    objective: Optional[Literal["yield", "liquidity", "preservation", "growth", "lowest_cost"]] = None
+    targetApy: Optional[float] = None
+    riskTolerance: Optional[Literal["low", "medium", "high"]] = None
+    maxLockDays: Optional[int] = None
+    preferredChain: Optional[str] = None
+    feePreference: Optional[Literal["lowest_fees", "acceptable"]] = None
+
+
 class Recommendation(BaseModel):
     rank: int = 1
     strategy: str
@@ -43,7 +53,6 @@ class Recommendation(BaseModel):
     steps: list[str] = []
     explanation: str
     citedOpportunities: list[str] = []
-    # Only set for rank > 1: why this ranked below the top pick.
     comparisonNote: Optional[str] = None
     badgeTag: Optional[str] = None
     fromToken: Optional[str] = None
@@ -52,6 +61,8 @@ class Recommendation(BaseModel):
     toChain: Optional[str] = None
     suggestedAmount: Optional[str] = None
     verifiedData: Optional[dict] = None
+    evidence: list[str] = []
+    score: Optional[float] = None
 
 
 class YieldOpportunity(BaseModel):
@@ -83,6 +94,7 @@ class IntentResponseContext(BaseModel):
 class IntentResponse(BaseModel):
     recommendations: list[Recommendation]
     context: IntentResponseContext
+    goalProfile: Optional[GoalProfile] = None
     simulated: bool
     simulationReason: Optional[str] = None
 
@@ -140,6 +152,7 @@ class OpportunityAlert(BaseModel):
     chain: str
     explanation: str
     severity: Literal["info", "notable", "high"]
+    goalMatchNote: Optional[str] = None
 
 
 class AlertsResponse(BaseModel):

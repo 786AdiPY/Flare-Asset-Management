@@ -70,6 +70,11 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
           <p className="text-xs text-neutral-300 font-mono-tech">
             {alert.currentApy}% → {alert.betterApy}% via {alert.protocol} on {alert.chain}
           </p>
+          {alert.goalMatchNote && (
+            <p className="text-xs text-accent font-mono-tech bg-accent/10 border border-accent/20 rounded-lg p-2 my-0.5">
+              ⚡ {alert.goalMatchNote}
+            </p>
+          )}
           <p className="text-xs text-neutral-400 leading-relaxed">{alert.explanation}</p>
         </div>
       ))}

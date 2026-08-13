@@ -22,11 +22,6 @@ export function LandingNavbar({ onLaunchApp }: LandingNavbarProps) {
       <div className="relative w-full flex items-center justify-between px-6 sm:px-10 py-4">
         {/* LEFT: Logo aligned tightly to far left corner */}
         <div className="flex items-center gap-2.5 z-10">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#3f49e1] to-[#6c5ce7] shadow-sm">
-            <svg className="h-4.5 w-4.5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
           <span className="font-display text-base font-bold tracking-tight text-ivory">
             Asset<span className="text-sage">Router</span>
           </span>
