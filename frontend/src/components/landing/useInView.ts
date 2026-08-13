@@ -16,7 +16,7 @@ export function useInView<T extends HTMLElement>(options?: IntersectionObserverI
           observer.unobserve(el);
         }
       },
-      { threshold: 0.2, rootMargin: "0px 0px -60px 0px", ...options }
+      { threshold: 0.3, rootMargin: "0px 0px -160px 0px", ...options }
     );
     observer.observe(el);
     return () => observer.disconnect();

@@ -86,9 +86,6 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
       {/* 3. Product Section */}
       <section id="product" className="relative z-20 mx-auto max-w-6xl px-4 pt-24 pb-24 border-t border-white/10">
         <div className="flex flex-col items-center text-center gap-3 mb-16">
-          <span className="text-xs font-mono-tech uppercase tracking-widest text-accent font-bold">
-            Product Capabilities
-          </span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-ivory">
             Institutional asset routing engine
           </h2>
@@ -130,9 +127,6 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
       {/* 4. How It Works Section */}
       <section id="how-it-works" className="mx-auto max-w-5xl px-4 py-24 border-t border-white/10">
         <div className="flex flex-col items-center text-center gap-3 mb-20">
-          <span className="text-xs font-mono-tech uppercase tracking-widest text-amber font-bold">
-            Workflow Architecture
-          </span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-ivory">
             How AssetRouter Works
           </h2>
@@ -144,9 +138,6 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
       {/* 5. Technology Section */}
       <section id="technology" className="mx-auto max-w-5xl px-4 py-24 border-t border-white/10">
         <div className="flex flex-col items-center text-center gap-3 mb-16">
-          <span className="text-xs font-mono-tech uppercase tracking-widest text-accent font-bold">
-            Infrastructure Layer
-          </span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-ivory">
             Oracle-backed routing stack
           </h2>
@@ -176,9 +167,6 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
       {/* 6. Ecosystem Section */}
       <section id="ecosystem" className="mx-auto max-w-5xl px-4 py-24 border-t border-white/10">
         <div className="flex flex-col items-center text-center gap-3 mb-16">
-          <span className="text-xs font-mono-tech uppercase tracking-widest text-success font-bold">
-            Integrated Ecosystem
-          </span>
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-ivory">
             One intelligence layer. Multiple sources.
           </h2>
