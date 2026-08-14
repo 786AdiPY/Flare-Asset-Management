@@ -26,7 +26,15 @@ export default function Home() {
   const { walletAddress } = useWalletContext();
   const { sendTransaction } = useWallet();
 
-  const [view, setView] = useState<"landing" | "app">("landing");
+  const [view, setView] = useState<"landing" | "app">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("view") === "app" || params.get("intent")) {
+        return "app";
+      }
+    }
+    return "landing";
+  });
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [result, setResult] = useState<IntentResponse | null>(null);
