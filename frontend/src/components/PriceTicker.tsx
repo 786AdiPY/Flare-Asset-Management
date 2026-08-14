@@ -40,10 +40,10 @@ export function PriceTicker() {
       {feeds.map((f) => (
         <div
           key={f.symbol}
-          className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 backdrop-blur-md hover:border-accent/40 transition-all"
+          className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md hover:border-accent/40 transition-all shadow-sm"
         >
-          <span className="text-xs font-semibold text-neutral-300">{f.symbol}</span>
-          <span className="font-mono-tech text-xs font-bold text-white">
+          <span className="text-xs sm:text-sm font-semibold text-neutral-200">{f.symbol}</span>
+          <span className="font-mono-tech text-xs sm:text-sm font-bold text-white">
             {f.value != null
               ? `$${f.value.toLocaleString(undefined, { maximumFractionDigits: 4 })}`
               : "—"}

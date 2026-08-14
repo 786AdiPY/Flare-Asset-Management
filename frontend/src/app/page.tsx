@@ -185,7 +185,7 @@ export default function Home() {
         onLandingClick={() => setView("landing")}
       />
 
-      <main className="mx-auto flex max-w-4xl flex-col gap-8 px-4 pb-16 pt-4">
+      <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 pb-16 pt-4">
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-ivory font-display">
             AI Intent <span className="lifi-text-gradient">Asset Router</span>
@@ -198,12 +198,12 @@ export default function Home() {
         <PriceTicker />
 
       {/* Step 3: Intent Input */}
-      <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-panel/80 backdrop-blur-xl p-6 shadow-2xl">
+      <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-panel/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
         <div>
-          <h2 className="text-xl font-bold text-ivory">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-ivory">
             {history.length === 0 ? "What do you want to achieve?" : "Refine your recommendation"}
           </h2>
-          <p className="text-xs text-neutral-400 mt-0.5">
+          <p className="text-sm sm:text-base text-neutral-300 font-medium mt-1 leading-relaxed">
             Describe your financial goal in plain language (e.g. &quot;I want low-risk passive income from my USDC&quot;)
           </p>
         </div>

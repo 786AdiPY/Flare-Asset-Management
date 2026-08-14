@@ -34,7 +34,7 @@ export function NavBar({ onRouterClick, onLandingClick }: NavBarProps) {
   };
 
   return (
-    <header className="sticky top-4 z-40 mx-auto max-w-6xl px-4 mb-6">
+    <header className="sticky top-4 z-40 mx-auto max-w-7xl px-4 sm:px-6 mb-6">
       <div className="glass-nav flex items-center justify-between gap-4 px-6 py-3 shadow-2xl rounded-2xl border border-white/10 bg-[#0B0F12]/80 backdrop-blur-xl">
         <div className="flex items-center gap-8">
           {/* Logo -> Redirects to Landing Page */}
@@ -57,10 +57,10 @@ export function NavBar({ onRouterClick, onLandingClick }: NavBarProps) {
                   key={l.key}
                   href={l.href}
                   onClick={l.key === "router" ? handleRouterClick : undefined}
-                  className={`rounded-full px-4 py-1.5 text-xs font-medium transition-all ${
+                  className={`rounded-full px-4 py-2 text-xs sm:text-sm font-medium transition-all ${
                     active
                       ? "bg-white/10 text-ivory border border-white/20 shadow-sm"
-                      : "text-neutral-400 hover:text-ivory hover:bg-white/5"
+                      : "text-neutral-300 hover:text-ivory hover:bg-white/5"
                   }`}
                 >
                   {l.label}

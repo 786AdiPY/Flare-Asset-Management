@@ -43,7 +43,7 @@ export function IntentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-5">
       <div className="relative group">
         <textarea
           value={intent}
@@ -54,19 +54,19 @@ export function IntentForm({
               : 'e.g. "Generate passive income with my tokenized gold"'
           }
           rows={isRefining ? 2 : 3}
-          className="w-full resize-none rounded-2xl border border-white/10 bg-[#121217]/90 p-4 text-sm text-white placeholder-neutral-500 outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-inner"
+          className="w-full resize-none rounded-2xl border border-white/15 bg-[#121217]/95 p-5 text-base sm:text-lg text-white font-medium placeholder-neutral-400 outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 transition-all shadow-inner leading-relaxed"
         />
         <div className="pointer-events-none absolute inset-0 rounded-2xl border border-transparent group-focus-within:border-accent/50 transition-colors" />
       </div>
 
       {!isRefining && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {EXAMPLES.map((ex) => (
             <button
               key={ex}
               type="button"
               onClick={() => setIntent(ex)}
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-300 hover:border-accent2 hover:text-white hover:bg-accent/20 transition-all"
+              className="rounded-full border border-white/15 bg-white/[0.06] px-4 py-2 text-xs sm:text-sm font-medium text-neutral-200 hover:border-accent2 hover:text-white hover:bg-white/15 transition-all shadow-sm leading-normal text-left"
             >
               {ex}
             </button>
@@ -74,22 +74,22 @@ export function IntentForm({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-1">
         <button
           type="submit"
           disabled={loading || !intent.trim()}
-          className="lifi-btn-primary px-6 py-2.5 text-xs font-bold disabled:opacity-40"
+          className="lifi-btn-primary px-7 py-3 text-sm font-bold disabled:opacity-40"
         >
           {loading ? "Analyzing Intent with LLM…" : isRefining ? "Refine Intent →" : "Get Recommendations →"}
         </button>
         {isRefining && (
-          <span className="text-xs text-accent2 font-mono-tech">
+          <span className="text-xs text-accent2 font-mono-tech font-semibold">
             Refining active conversation turn #{history.length / 2 + 1}
           </span>
         )}
       </div>
 
-      {error && <p className="text-xs text-danger">{error}</p>}
+      {error && <p className="text-sm text-danger font-medium">{error}</p>}
     </form>
   );
 }

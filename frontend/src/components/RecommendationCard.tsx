@@ -62,12 +62,12 @@ function StrategyCard({
       {/* Top Bar: OPTION # (left) + BADGE / RISK / COPY (right) */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <span className="font-mono-tech text-xs font-bold text-neutral-400 uppercase tracking-widest">
+          <span className="font-mono-tech text-xs sm:text-sm font-bold text-neutral-400 uppercase tracking-widest">
             OPTION #{rec.rank}
           </span>
           {rec.badgeTag && (
             <span
-              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide font-mono-tech ${
+              className={`rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide font-mono-tech ${
                 rec.badgeTag === "Best Match"
                   ? "bg-emerald-500/20 border border-emerald-500/50 text-emerald-400 shadow-sm"
                   : "bg-accent/20 border border-accent/40 text-accent2"
@@ -79,7 +79,7 @@ function StrategyCard({
         </div>
         <div className="flex items-center gap-3">
           <span
-            className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold tracking-wider font-mono-tech ${
+            className={`rounded-full border px-3 py-1 text-xs font-bold tracking-wider font-mono-tech ${
               RISK_BADGE[rec.riskLevel]
             }`}
           >
@@ -106,19 +106,19 @@ function StrategyCard({
 
       {/* Title & Subtitle */}
       <div>
-        <h3 className="text-xl font-bold text-white group-hover:text-accent2 transition-colors">
+        <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-accent2 transition-colors">
           {rec.strategy}
         </h3>
-        <p className="text-xs text-neutral-400 font-mono-tech mt-1">
+        <p className="text-xs sm:text-sm text-neutral-400 font-mono-tech mt-1">
           {rec.chain} · {rec.protocol}
         </p>
       </div>
 
       {/* Metrics Row: APY | TVL | Fee | Risk */}
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-white/10 bg-[#09090c]/70 px-4 py-3 text-xs font-mono-tech text-neutral-300">
+      <div className="flex flex-wrap items-center gap-x-8 gap-y-2 rounded-xl border border-white/10 bg-[#09090c]/70 px-5 py-3.5 text-xs sm:text-sm font-mono-tech text-neutral-300">
         <div>
           <span className="text-neutral-400">APY </span>
-          <strong className="text-success font-extrabold text-sm">
+          <strong className="text-success font-extrabold text-sm sm:text-base">
             {rec.estimatedApy != null ? `${rec.estimatedApy.toFixed(2)}%` : "—"}
           </strong>
         </div>
@@ -149,21 +149,21 @@ function StrategyCard({
       </div>
 
       {/* Why This Option? Section */}
-      <div className="flex flex-col gap-2 rounded-xl border border-accent/20 bg-accent/5 p-4">
+      <div className="flex flex-col gap-2.5 rounded-xl border border-accent/20 bg-accent/5 p-4.5">
         <div className="flex items-center gap-2">
-          <span className="text-accent text-sm">⚡</span>
-          <span className="text-xs font-bold text-accent font-mono-tech uppercase tracking-wider">
+          <span className="text-accent text-sm sm:text-base">⚡</span>
+          <span className="text-xs sm:text-sm font-bold text-accent font-mono-tech uppercase tracking-wider">
             Why this option?
           </span>
         </div>
 
         {/* Evidence Checkmarks */}
         {rec.evidence && rec.evidence.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 py-1">
+          <div className="flex flex-wrap gap-2 py-1">
             {rec.evidence.map((ev, idx) => (
               <span
                 key={idx}
-                className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-medium text-emerald-300 font-mono-tech"
+                className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs sm:text-sm font-medium text-emerald-300 font-mono-tech"
               >
                 {ev}
               </span>
@@ -171,7 +171,7 @@ function StrategyCard({
           </div>
         )}
 
-        <p className="text-xs text-neutral-300 leading-relaxed mt-1">{rec.explanation}</p>
+        <p className="text-xs sm:text-sm text-neutral-200 leading-relaxed mt-1">{rec.explanation}</p>
       </div>
 
       {/* Interactive Meta Row: [Compare ranking] and [Data sources] */}
@@ -179,13 +179,13 @@ function StrategyCard({
         <button
           type="button"
           onClick={() => setShowWhyThis(!showWhyThis)}
-          className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white font-mono-tech transition-colors"
+          className="flex items-center gap-1.5 text-xs sm:text-sm text-neutral-300 hover:text-white font-mono-tech transition-colors"
         >
           <span className="underline underline-offset-4 decoration-neutral-500 hover:decoration-white font-medium">
             Compare ranking
           </span>
           <svg
-            className={`w-3 h-3 transition-transform duration-200 ${showWhyThis ? "rotate-180 text-accent2" : ""}`}
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${showWhyThis ? "rotate-180 text-accent2" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -199,14 +199,14 @@ function StrategyCard({
         <button
           type="button"
           onClick={() => setShowDataSources(!showDataSources)}
-          className="flex items-center gap-1.5 text-xs text-neutral-300 hover:text-white font-mono-tech transition-colors"
+          className="flex items-center gap-1.5 text-xs sm:text-sm text-neutral-300 hover:text-white font-mono-tech transition-colors"
         >
           <span className="underline underline-offset-4 decoration-neutral-500 hover:decoration-white font-medium flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse inline-block" />
             Data sources
           </span>
           <svg
-            className={`w-3 h-3 transition-transform duration-200 ${showDataSources ? "rotate-180 text-success" : ""}`}
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${showDataSources ? "rotate-180 text-success" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -218,11 +218,11 @@ function StrategyCard({
 
       {/* Compare ranking Expandable Panel */}
       {showWhyThis && (
-        <div className="border-l-2 border-accent bg-accent/5 pl-4 py-2.5 pr-3 rounded-r-xl transition-all animate-fadeIn">
-          <h4 className="text-xs font-bold text-white font-mono-tech">
+        <div className="border-l-2 border-accent bg-accent/5 pl-4 py-3 pr-3 rounded-r-xl transition-all animate-fadeIn">
+          <h4 className="text-xs sm:text-sm font-bold text-white font-mono-tech">
             Ranking score comparison #{rec.rank}:
           </h4>
-          <p className="text-xs text-neutral-300 mt-1 leading-relaxed font-sans">
+          <p className="text-xs sm:text-sm text-neutral-200 mt-1 leading-relaxed font-sans">
             {rec.comparisonNote || "Top pick evaluated best against target APY, risk tolerance, and route complexity."}
           </p>
         </div>
@@ -230,11 +230,11 @@ function StrategyCard({
 
       {/* Data sources Expandable Panel */}
       {showDataSources && (
-        <div className="border-l-2 border-success bg-success/5 pl-4 py-2.5 pr-3 rounded-r-xl transition-all animate-fadeIn">
-          <h4 className="text-xs font-bold text-white font-mono-tech">
+        <div className="border-l-2 border-success bg-success/5 pl-4 py-3 pr-3 rounded-r-xl transition-all animate-fadeIn">
+          <h4 className="text-xs sm:text-sm font-bold text-white font-mono-tech">
             Verified against
           </h4>
-          <ul className="mt-2 space-y-1 text-xs text-neutral-300 font-mono-tech">
+          <ul className="mt-2 space-y-1 text-xs sm:text-sm text-neutral-200 font-mono-tech">
             <li className="flex items-center gap-2">
               <span className="text-neutral-500">•</span>
               <span>Flare FTSOv2 — price</span>
@@ -252,11 +252,11 @@ function StrategyCard({
       )}
 
       {/* Route Section */}
-      <div className="flex flex-col gap-1 pt-1">
+      <div className="flex flex-col gap-1.5 pt-1">
         <span className="text-xs font-bold text-neutral-400 font-mono-tech uppercase tracking-wider">
           Route
         </span>
-        <p className="text-xs font-mono-tech text-accent2 bg-white/5 rounded-lg px-3 py-2 border border-white/10 w-fit">
+        <p className="text-xs sm:text-sm font-mono-tech text-accent2 bg-white/5 rounded-lg px-3.5 py-2 border border-white/10 w-fit">
           {formattedRoute}
         </p>
       </div>
@@ -266,7 +266,7 @@ function StrategyCard({
         <button
           type="button"
           onClick={() => setShowSteps(!showSteps)}
-          className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs font-bold text-neutral-200 transition-all hover:border-accent/40 hover:bg-white/10 hover:text-white"
+          className="flex items-center gap-2 rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-xs sm:text-sm font-bold text-neutral-200 transition-all hover:border-accent/40 hover:bg-white/10 hover:text-white"
         >
           <span>{showSteps ? "Hide execution steps" : "View execution steps"}</span>
           <svg
@@ -282,7 +282,7 @@ function StrategyCard({
         <button
           type="button"
           onClick={() => onSelect?.(rec)}
-          className="lifi-btn-primary px-5 py-2.5 text-xs font-bold shadow-md"
+          className="lifi-btn-primary px-6 py-3 text-xs sm:text-sm font-bold shadow-md"
         >
           Select Route &amp; Execute →
         </button>
@@ -290,11 +290,11 @@ function StrategyCard({
 
       {/* Collapsible Execution Steps Section */}
       {showSteps && (
-        <div className="flex flex-col gap-2.5 rounded-xl border border-white/10 bg-[#09090c]/90 p-4 transition-all animate-fadeIn mt-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 font-mono-tech">
+        <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-[#09090c]/90 p-4.5 transition-all animate-fadeIn mt-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-neutral-400 font-mono-tech">
             Execution Steps:
           </span>
-          <div className="flex flex-col gap-2 font-mono-tech text-xs">
+          <div className="flex flex-col gap-2 font-mono-tech text-xs sm:text-sm">
             {rec.steps.map((step, i) => (
               <div
                 key={i}
@@ -327,11 +327,11 @@ export function RecommendationCard({ result, onSelectStrategy }: RecommendationC
       goalProfile.asset);
 
   return (
-    <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
+    <div className="flex flex-col gap-6 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold text-white">Goal-Aware Strategy Recommendations</h2>
-          <p className="text-xs text-neutral-400">
+          <h2 className="text-xl sm:text-2xl font-bold text-white">Goal-Aware Strategy Recommendations</h2>
+          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
             Ranked deterministically by goal fit score · Select a strategy card to preview route &amp; execute
           </p>
         </div>
@@ -340,32 +340,32 @@ export function RecommendationCard({ result, onSelectStrategy }: RecommendationC
 
       {/* Parsed Goal Profile Chips */}
       {hasGoalChips && (
-        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-white/10 bg-white/5 p-3 text-xs font-mono-tech">
-          <span className="text-neutral-400 font-bold uppercase tracking-wider text-[10px]">
+        <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-white/10 bg-white/5 p-3.5 text-xs sm:text-sm font-mono-tech">
+          <span className="text-neutral-400 font-bold uppercase tracking-wider text-xs">
             Parsed Goal Profile:
           </span>
           {goalProfile.asset && (
-            <span className="rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-white">
+            <span className="rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-white">
               Asset: {goalProfile.asset}
             </span>
           )}
           {goalProfile.targetApy && (
-            <span className="rounded-md border border-accent/40 bg-accent/15 px-2 py-0.5 text-accent font-bold">
+            <span className="rounded-md border border-accent/40 bg-accent/15 px-2.5 py-1 text-accent font-bold">
               Target APY: ≥{goalProfile.targetApy}%
             </span>
           )}
           {goalProfile.riskTolerance && (
-            <span className="rounded-md border border-amber/40 bg-amber/15 px-2 py-0.5 text-amber">
+            <span className="rounded-md border border-amber/40 bg-amber/15 px-2.5 py-1 text-amber">
               Risk: {goalProfile.riskTolerance}
             </span>
           )}
           {goalProfile.objective && (
-            <span className="rounded-md border border-white/15 bg-white/10 px-2 py-0.5 text-neutral-200">
+            <span className="rounded-md border border-white/15 bg-white/10 px-2.5 py-1 text-neutral-200">
               Goal: {goalProfile.objective}
             </span>
           )}
           {goalProfile.preferredChain && (
-            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-emerald-400">
+            <span className="rounded-md border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-emerald-400">
               Chain: {goalProfile.preferredChain}
             </span>
           )}
@@ -383,11 +383,11 @@ export function RecommendationCard({ result, onSelectStrategy }: RecommendationC
         ))}
       </div>
 
-      <details className="text-xs text-neutral-500">
+      <details className="text-xs sm:text-sm text-neutral-500">
         <summary className="cursor-pointer text-neutral-400 hover:text-white font-mono-tech">
           Context used ({context.topYields.length} yield opportunities, {context.prices.length} price feeds)
         </summary>
-        <div className="mt-2 space-y-1 font-mono-tech">
+        <div className="mt-2 space-y-1 font-mono-tech text-xs sm:text-sm">
           {context.topYields.map((y) => (
             <div key={y.poolId}>
               {y.project} · {y.symbol} · {y.chain} · APY {y.apy?.toFixed(2) ?? "—"}%

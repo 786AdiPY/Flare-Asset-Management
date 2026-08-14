@@ -13,6 +13,8 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
   const [holdings, setHoldings] = useState<AssetHolding[]>([]);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [detected, setDetected] = useState<WalletBalanceResponse | null>(null);
 
@@ -20,15 +22,22 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
     if (!walletAddress) {
       setHoldings([]);
       setDetected(null);
+      setHasUnsavedChanges(false);
       return;
     }
     let cancelled = false;
     getPortfolio(walletAddress)
       .then((res) => {
-        if (!cancelled) setHoldings(res.holdings);
+        if (!cancelled) {
+          setHoldings(res.holdings);
+          setHasUnsavedChanges(false);
+        }
       })
       .catch(() => {
-        if (!cancelled) setHoldings([]);
+        if (!cancelled) {
+          setHoldings([]);
+          setHasUnsavedChanges(false);
+        }
       });
     getWalletBalance(walletAddress)
       .then((res) => {
@@ -42,6 +51,24 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
     };
   }, [walletAddress]);
 
+  async function handleSyncWallet() {
+    if (!walletAddress) return;
+    setSyncing(true);
+    try {
+      const [portRes, balRes] = await Promise.all([
+        getPortfolio(walletAddress).catch(() => ({ holdings: [] })),
+        getWalletBalance(walletAddress).catch(() => null),
+      ]);
+      if (portRes.holdings) {
+        setHoldings(portRes.holdings);
+        setHasUnsavedChanges(false);
+      }
+      setDetected(balRes);
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   function addDetectedBalance() {
     if (!detected || detected.balance == null) return;
     setHoldings((prev) => [
@@ -49,6 +76,7 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
       { symbol: detected.symbol, chain: detected.chain, amount: detected.balance as number },
     ]);
     setDetected(null);
+    setHasUnsavedChanges(true);
   }
 
   function addHolding(e: FormEvent) {
@@ -65,18 +93,44 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
       },
     ]);
     setForm(EMPTY_FORM);
+    setHasUnsavedChanges(true);
   }
 
   function removeHolding(index: number) {
     setHoldings((prev) => prev.filter((_, i) => i !== index));
+    setHasUnsavedChanges(true);
   }
+
+  const hasValidForm = Boolean(form.symbol.trim() && form.chain.trim() && form.amount.trim());
+  const showSaveButton = hasValidForm || (hasUnsavedChanges && holdings.length > 0);
 
   async function handleSave() {
     if (!walletAddress) return;
     setSaving(true);
     setError(null);
+
+    let toSave = [...holdings];
+    if (form.symbol.trim() && form.chain.trim() && form.amount.trim()) {
+      const newAsset: AssetHolding = {
+        symbol: form.symbol.trim().toUpperCase(),
+        chain: form.chain.trim(),
+        amount: Number(form.amount),
+        currentProtocol: form.currentProtocol.trim() || null,
+        currentApy: form.currentApy.trim() ? Number(form.currentApy) : null,
+      };
+      toSave.push(newAsset);
+      setHoldings(toSave);
+      setForm(EMPTY_FORM);
+    }
+
+    if (toSave.length === 0) {
+      setSaving(false);
+      return;
+    }
+
     try {
-      await savePortfolio(walletAddress, holdings);
+      await savePortfolio(walletAddress, toSave);
+      setHasUnsavedChanges(false);
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save holdings");
@@ -96,15 +150,39 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
 
   return (
     <div className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold text-white">Your Portfolio & Asset Holdings</h3>
-        <span className="text-xs text-neutral-400 font-mono-tech">
-          {holdings.length} asset{holdings.length !== 1 ? "s" : ""} registered
-        </span>
+      <div className="flex items-center justify-between gap-4">
+        <h3 className="text-xl sm:text-2xl font-bold text-white">Your Portfolio & Asset Holdings</h3>
+        <div className="flex items-center gap-3">
+          <span className="text-xs sm:text-sm text-neutral-300 font-mono-tech">
+            {holdings.length} asset{holdings.length !== 1 ? "s" : ""} registered
+          </span>
+          <button
+            type="button"
+            onClick={handleSyncWallet}
+            disabled={syncing}
+            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-neutral-200 hover:text-white hover:border-white/20 hover:bg-white/10 transition-all disabled:opacity-50"
+            title="Sync wallet balance with platform"
+          >
+            <svg
+              className={`h-4 w-4 ${syncing ? "animate-spin text-accent" : ""}`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <span>{syncing ? "Syncing…" : "Sync Wallet"}</span>
+          </button>
+        </div>
       </div>
 
       {detected && detected.balance != null && detected.balance > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent/15 px-4 py-3 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent/15 px-4.5 py-3.5 text-xs sm:text-sm">
           <span className="text-white">
             Detected <strong className="text-accent2">{detected.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} {detected.symbol}</strong> on {detected.chain} in your wallet
           </span>
@@ -113,7 +191,7 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
             <button
               type="button"
               onClick={addDetectedBalance}
-              className="lifi-btn-primary px-3 py-1 text-xs font-bold"
+              className="lifi-btn-primary px-4 py-1.5 text-xs sm:text-sm font-bold"
             >
               Add to holdings
             </button>
@@ -126,12 +204,12 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
           {holdings.map((h, i) => (
             <li
               key={`${h.symbol}-${i}`}
-              className="flex items-center justify-between rounded-xl border border-white/10 bg-[#09090c] px-4 py-3 text-xs"
+              className="flex items-center justify-between rounded-xl border border-white/10 bg-[#09090c] px-4 py-3.5 text-xs sm:text-sm font-medium"
             >
               <span>
                 <strong className="text-white font-bold">{h.amount.toLocaleString()} {h.symbol}</strong> on {h.chain}
                 {h.currentProtocol ? (
-                  <span className="text-neutral-400 font-mono-tech">
+                  <span className="text-neutral-300 font-mono-tech">
                     {" "}
                     — earning {h.currentApy ?? 0}% via {h.currentProtocol}
                   </span>
@@ -142,7 +220,7 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
               <button
                 type="button"
                 onClick={() => removeHolding(i)}
-                className="text-xs text-neutral-400 hover:text-danger font-bold transition-colors"
+                className="text-xs sm:text-sm text-neutral-400 hover:text-danger font-bold transition-colors"
               >
                 Remove
               </button>
@@ -151,73 +229,75 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
         </ul>
       )}
 
-      <form onSubmit={addHolding} className="flex flex-wrap items-end gap-3 pt-2">
+      <form onSubmit={addHolding} className="flex flex-wrap items-end gap-3.5 pt-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-neutral-400 uppercase">Symbol</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Symbol</label>
           <input
             value={form.symbol}
             onChange={(e) => setForm((f) => ({ ...f, symbol: e.target.value }))}
             placeholder="USDC"
-            className="w-24 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-28 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-neutral-400 uppercase">Chain</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Chain</label>
           <input
             value={form.chain}
             onChange={(e) => setForm((f) => ({ ...f, chain: e.target.value }))}
             placeholder="Ethereum"
-            className="w-28 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-neutral-400 uppercase">Amount</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Amount</label>
           <input
             value={form.amount}
             onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
             placeholder="10000"
             inputMode="decimal"
-            className="w-28 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-neutral-400 uppercase">Current Protocol</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Current Protocol</label>
           <input
             value={form.currentProtocol}
             onChange={(e) => setForm((f) => ({ ...f, currentProtocol: e.target.value }))}
             placeholder="Aave"
-            className="w-28 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-semibold text-neutral-400 uppercase">Current APY %</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Current APY %</label>
           <input
             value={form.currentApy}
             onChange={(e) => setForm((f) => ({ ...f, currentApy: e.target.value }))}
             placeholder="3.2"
             inputMode="decimal"
-            className="w-24 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-28 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
           />
         </div>
         <button
           type="submit"
-          className="lifi-btn-secondary px-4 py-2 text-xs font-semibold"
+          className="lifi-btn-secondary px-5 py-2.5 text-xs sm:text-sm font-bold"
         >
           Add Asset
         </button>
       </form>
 
-      <div className="flex items-center gap-3 border-t border-white/10 pt-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="lifi-btn-primary px-6 py-2.5 text-xs font-bold disabled:opacity-50"
-        >
-          {saving ? "Saving Portfolio…" : "Save Holdings & Continue →"}
-        </button>
-        {error && <p className="text-xs text-danger">{error}</p>}
-      </div>
+      {showSaveButton && (
+        <div className="flex items-center gap-3 border-t border-white/10 pt-4">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="lifi-btn-primary px-6 py-2.5 text-xs font-bold disabled:opacity-50"
+          >
+            {saving ? "Saving Portfolio…" : "Save Holdings & Continue →"}
+          </button>
+          {error && <p className="text-xs text-danger">{error}</p>}
+        </div>
+      )}
     </div>
   );
 }

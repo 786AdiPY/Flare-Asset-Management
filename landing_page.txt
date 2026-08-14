@@ -1,0 +1,150 @@
+================================================================================
+                           ASSETROUTER LANDING PAGE
+================================================================================
+
+NAVIGATION BAR
+--------------------------------------------------------------------------------
+Brand Logo: AssetRouter
+Navigation Links:
+  - Product (#product)
+  - How it works (#how-it-works)
+  - Technology (#technology)
+  - Ecosystem (#ecosystem)
+Action CTA: Launch App →
+
+
+HERO SECTION
+--------------------------------------------------------------------------------
+Main Headline:
+  Move your assets with intent.
+
+Subheading Description:
+  AssetRouter understands your goal, discovers opportunities across chains, and
+  helps you choose the best path for your assets.
+
+Action CTAs:
+  - Launch AssetRouter →
+  - ⚡ Have XRP? Explore Flare → (Pre-loads intent: "What can I do with my XRP on Flare?")
+  - See how it works ↓
+
+
+3D INTERACTIVE GLOBE & DATA NODES
+--------------------------------------------------------------------------------
+Interactive 3D WebGL Globe displaying hairline white route arcs & live nodes:
+  - FLR — Flare FTSOv2
+  - ETH — Ethereum Mainnet
+  - USDC — Base L2
+  - BTC — Arbitrum One
+  - AVAX — Avalanche C-Chain
+
+
+SECTION 1: PRODUCT
+--------------------------------------------------------------------------------
+Section Title:
+  Institutional asset routing engine
+
+Subtitle:
+  Translating complex natural language financial goals into verified multi-chain
+  execution paths.
+
+Product Feature Cards:
+
+  1. AI Intent Parsing
+     Description: Describe target yield, risk tolerance, and asset constraints in plain
+                  language. LLM reasoning parses parameters into structured execution schemas.
+     Tags: [LLM Reasoning, Structured Schema]
+
+  2. Flare FTSOv2 Oracle Data
+     Description: Real-time decentralized price feed attestation ensuring pricing accuracy
+                  and collateral valuation safety across all active routes.
+     Tags: [Sub-second Feeds, Decentralized]
+
+  3. Multi-Chain LI.FI Aggregation
+     Description: Cross-chain DEX and bridge liquidity routing across Ethereum, Flare,
+                  Arbitrum, Avalanche, Polygon, and Base.
+     Tags: [6+ Chains, DEX + Bridge]
+
+
+SECTION 2: HOW IT WORKS (WORKFLOW NARRATIVE)
+--------------------------------------------------------------------------------
+Section Title:
+  How AssetRouter Works
+
+Step 01 | Input
+  Headline: Describe the goal in plain language
+  Narrative: No forms, no dropdowns. A wallet holding 5,000 FLR states its intent,
+             and AssetRouter parses it directly.
+  Visual State: Wallet: 5,000 FLR
+
+Step 02 | Oracle
+  Headline: Ground it in a live price feed
+  Narrative: Flare's FTSOv2 decentralized oracle attests FLR/USD in real time, so every
+             number downstream is priced against verified market data, not a stale API.
+  Visual State: FTSOv2: FLR/USD = $0.0061
+
+Step 03 | Valuation
+  Headline: Turn holdings into a number
+  Narrative: The position is converted into a single portfolio valuation — the baseline
+             every recommendation gets measured against.
+  Visual State: Portfolio value = $30.50
+
+Step 04 | Discovery
+  Headline: Scan the opportunity set
+  Narrative: LI.FI and DeFiLlama surface yield and routing opportunities across chains —
+             the raw candidates for what to do next.
+  Visual State: Yield opportunities: [Flare, Base, Arbitrum]
+
+Step 05 | Reasoning
+  Headline: Rank the tradeoffs
+  Narrative: An LLM reasons over risk, yield, and execution cost to rank the candidates —
+             not just the highest headline APY.
+  Visual State: AI ranking
+
+Step 06 | Output
+  Headline: Deliver one clear answer
+  Narrative: The result is a single, explainable recommendation the user can act on immediately.
+  Visual State: Recommendation: Generated
+
+
+SECTION 3: TECHNOLOGY
+--------------------------------------------------------------------------------
+Section Title:
+  Oracle-backed routing stack
+
+Technology Stack Cards:
+
+  1. Flare FTSOv2 Oracle Price Feeds
+     Description: Decentralized, sub-second native price feeds ensuring real-time portfolio
+                  valuation and collateral safety.
+     Tags: [Real-time Valuation, Collateral Safety]
+
+  2. LI.FI DEX & Bridge Engine
+     Description: Unified cross-chain bridge and swap routing API optimizing transaction
+                  paths for minimum gas and maximum yield retention.
+     Tags: [Gas Optimized, Unified API]
+
+
+SECTION 4: ECOSYSTEM
+--------------------------------------------------------------------------------
+Section Title:
+  One intelligence layer. Multiple sources.
+
+Ecosystem Partners & Data Sources:
+  - Flare FTSOv2: Oracle price feeds
+  - LI.FI SDK: Bridge & swap routing
+  - DeFiLlama: Yield & TVL data
+  - OpenRouter: LLM inference layer
+
+
+SECTION 5: FINAL CALL TO ACTION
+--------------------------------------------------------------------------------
+Headline:
+  Tell AssetRouter what you want to achieve.
+
+Action Button:
+  Launch AssetRouter →
+
+
+FOOTER
+--------------------------------------------------------------------------------
+© 2026 AssetRouter · Web3 Infrastructure Engine

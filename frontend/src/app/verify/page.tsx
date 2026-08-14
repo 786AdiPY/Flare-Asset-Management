@@ -58,31 +58,31 @@ export default function VerifyPage() {
   const currentPhase = job ? phaseIndex(job.status) : -1;
 
   return (
-    <main className="mx-auto flex max-w-4xl flex-col gap-8 px-4 py-12">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-3xl font-black text-white font-display">
+    <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 py-12">
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-3xl sm:text-4xl font-black text-white font-display">
           Flare Data Connector — <span className="lifi-text-gradient">Real Coston2 Attestation</span>
         </h1>
-        <p className="text-sm text-neutral-400 font-medium">
+        <p className="text-sm sm:text-base text-neutral-300 font-medium leading-relaxed">
           Live Coston2 FDC contract resolution, fee calculation, voting round tracking, and DA Layer Merkle proofs.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-4 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-neutral-400 uppercase">Source Chain</label>
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Source Chain</label>
           <input
             value={sourceChain}
             onChange={(e) => setSourceChain(e.target.value)}
-            className="w-40 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent"
+            className="w-44 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white outline-none focus:border-accent font-medium"
           />
         </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-neutral-400 uppercase">Transaction Hash</label>
+        <div className="flex flex-col gap-1 flex-1 min-w-[240px]">
+          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Transaction Hash</label>
           <input
             value={txHash}
             onChange={(e) => setTxHash(e.target.value)}
-            className="w-72 rounded-xl border border-white/10 bg-[#09090c] px-3 py-2 text-xs text-white outline-none focus:border-accent font-mono-tech"
+            className="w-full rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white outline-none focus:border-accent font-mono-tech font-medium"
           />
         </div>
         <button
