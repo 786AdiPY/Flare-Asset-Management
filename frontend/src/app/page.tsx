@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { NavBar } from "@/components/NavBar";
 import { IntentForm } from "@/components/IntentForm";
@@ -21,19 +22,23 @@ import { useWallet } from "@/lib/wallet";
 import { useWalletContext } from "@/lib/walletContext";
 import { FAssetsCard } from "@/components/FAssetsCard";
 
-
-export default function Home() {
+function MainHomeContent() {
   const { walletAddress } = useWalletContext();
   const { sendTransaction } = useWallet();
+  const searchParams = useSearchParams();
 
-  const [mounted, setMounted] = useState(false);
-  const [view, setView] = useState<"landing" | "app">("landing");
+  const [overrideView, setOverrideView] = useState<"landing" | "app" | null>(null);
+
+  // Synchronously compute view on render pass #1 from URL query params
+  const queryView = searchParams.get("view");
+  const hasIntent = searchParams.has("intent");
+  const currentView = overrideView ?? (queryView === "app" || hasIntent ? "app" : "landing");
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [result, setResult] = useState<IntentResponse | null>(null);
   const [isXrpIntent, setIsXrpIntent] = useState(false);
   const [xrpAmount, setXrpAmount] = useState("");
-
 
   // Selected strategy & modal state
   const [selectedStrategy, setSelectedStrategy] = useState<Recommendation | null>(null);
@@ -164,31 +169,16 @@ export default function Home() {
     setCurrentStep(walletAddress ? 3 : 1);
   }
 
-  // Set mounted and check URL query parameter on mount for view=app or intent
-  useEffect(() => {
-    setMounted(true);
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("view") === "app" || params.get("intent")) {
-        setView("app");
-      }
-    }
-  }, []);
-
-  if (!mounted) {
-    return <div className="min-h-screen bg-obsidian" />;
-  }
-
-  if (view === "landing") {
-    return <LandingPage onLaunchApp={() => setView("app")} />;
+  if (currentView === "landing") {
+    return <LandingPage onLaunchApp={() => setOverrideView("app")} />;
   }
 
   return (
     <div className="min-h-screen bg-obsidian text-ivory">
       {/* Top App Navigation Bar (Router, Holdings & Alerts, Yields, Feeds, Connect Wallet) */}
       <NavBar
-        onRouterClick={() => setView("app")}
-        onLandingClick={() => setView("landing")}
+        onRouterClick={() => setOverrideView("app")}
+        onLandingClick={() => setOverrideView("landing")}
       />
 
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 pb-16 pt-4">
@@ -203,53 +193,58 @@ export default function Home() {
 
         <PriceTicker />
 
-      {/* Step 3: Intent Input */}
-      <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-panel/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
-        <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-ivory">
-            {history.length === 0 ? "What do you want to achieve?" : "Refine your recommendation"}
-          </h2>
-          <p className="text-sm sm:text-base text-neutral-300 font-medium mt-1 leading-relaxed">
-            Describe your financial goal in plain language (e.g. &quot;I want low-risk passive income from my USDC&quot;)
-          </p>
-        </div>
-        <Suspense fallback={<div className="text-xs text-neutral-400 font-mono-tech">Loading router engine...</div>}>
+        {/* Step 3: Intent Input */}
+        <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-panel/80 backdrop-blur-xl p-6 sm:p-8 shadow-2xl">
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-ivory">
+              {history.length === 0 ? "What do you want to achieve?" : "Refine your recommendation"}
+            </h2>
+            <p className="text-sm sm:text-base text-neutral-300 font-medium mt-1 leading-relaxed">
+              Describe your financial goal in plain language (e.g. &quot;I want low-risk passive income from my USDC&quot;)
+            </p>
+          </div>
           <IntentForm history={history} onResult={handleIntentResult} />
-        </Suspense>
-      </section>
-
-      {/* Step 4: AI Strategy Recommendations */}
-      {result && txStatus.step === "idle" && (
-        <section className="flex flex-col gap-4">
-          <RecommendationCard result={result} onSelectStrategy={handleSelectStrategy} />
-
-          {/* Contextual FAssets card — shown only for XRP-related intents */}
-          {isXrpIntent && (
-            <FAssetsCard xrpAmount={xrpAmount || undefined} />
-          )}
         </section>
-      )}
 
-      {/* Step 5: Route Preview Modal */}
-      {selectedStrategy && (
-        <RoutePreviewModal
-          recommendation={selectedStrategy}
-          quote={quote}
-          loadingQuote={loadingQuote}
-          errorQuote={errorQuote}
-          onConfirm={handleExecuteRoute}
-          onClose={() => setSelectedStrategy(null)}
-        />
-      )}
+        {/* Step 4: AI Strategy Recommendations */}
+        {result && txStatus.step === "idle" && (
+          <section className="flex flex-col gap-4">
+            <RecommendationCard result={result} onSelectStrategy={handleSelectStrategy} />
 
-      {/* Step 6: Execution Status Tracker */}
-      {txStatus.step !== "idle" && <TxStatusCard status={txStatus} onReset={handleResetFlow} />}
+            {/* Contextual FAssets card — shown only for XRP-related intents */}
+            {isXrpIntent && (
+              <FAssetsCard xrpAmount={xrpAmount || undefined} />
+            )}
+          </section>
+        )}
 
-      <footer className="pb-8 text-center text-xs sm:text-sm text-neutral-400 font-mono-tech">
-        Real-time price feeds &amp; yield analytics · Non-custodial route execution via LI.FI &amp; EVM wallets.
-      </footer>
-    </main>
+        {/* Step 5: Route Preview Modal */}
+        {selectedStrategy && (
+          <RoutePreviewModal
+            recommendation={selectedStrategy}
+            quote={quote}
+            loadingQuote={loadingQuote}
+            errorQuote={errorQuote}
+            onConfirm={handleExecuteRoute}
+            onClose={() => setSelectedStrategy(null)}
+          />
+        )}
+
+        {/* Step 6: Execution Status Tracker */}
+        {txStatus.step !== "idle" && <TxStatusCard status={txStatus} onReset={handleResetFlow} />}
+
+        <footer className="pb-8 text-center text-xs sm:text-sm text-neutral-400 font-mono-tech">
+          Real-time price feeds &amp; yield analytics · Non-custodial route execution via LI.FI &amp; EVM wallets.
+        </footer>
+      </main>
     </div>
   );
 }
 
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-obsidian" />}>
+      <MainHomeContent />
+    </Suspense>
+  );
+}
