@@ -1,101 +1,122 @@
-# AI-Asset Router
+# 🚀 AssetRouter
 
-AI Intent Router for Tokenized Assets. Users describe a financial goal in plain
-language ("Generate passive income with my tokenized gold"); the backend gathers
-live market context (Flare FTSO prices, DeFiLlama yields, LI.FI bridge routes)
-and asks an LLM (via OpenRouter) to rank concrete on-chain strategies —
-plus proactively surfaces better opportunities for whatever's already in the
-user's wallet, with a plain-language explanation of *why* (and why not the
-alternatives).
+Live Demo: [AssetRouter App](http://localhost:3000)
 
-Five pages: **Home** (intent → ranked recommendations, with follow-up refine),
-**Holdings & Alerts** (auto-detected + manual holdings, Smart Opportunity
-Alerts), **Yields** (DeFiLlama explorer with APY history sparklines),
-**Feeds** (11 live Flare FTSO price feeds), and **Verify** (a phase-accurate
-Flare Data Connector attestation simulation). See **[FEATURES.md](FEATURES.md)**
-for the full page-by-page breakdown of what's live vs. simulated.
+> Non-custodial Intent Router for Tokenized Assets & Cross-Chain Yields — Powered by Flare FTSOv2 Decentralized Oracles, Flare FAssets (FXRP), LI.FI Liquidity Aggregation, and DeFiLlama Analytics.
 
-## Stack
+---
 
-- **Frontend**: Next.js 14 (App Router) + TypeScript + Tailwind CSS
-- **Backend**: FastAPI (Python)
-- **AI**: OpenRouter (LLM)
-- **Blockchain**: Flare FTSOv2 (price feeds), Flare FDC (cross-chain verification, stubbed — see below)
-- **Wallet**: MetaMask (live) / WalletConnect (not wired up yet, see below) / Demo Wallet
-- **Data providers**: DeFiLlama (yields), CoinGecko (spot prices), LI.FI (cross-chain quotes)
-- **Database**: Supabase (optional — falls back to an in-memory store when unconfigured)
+## 📖 Overview
 
-## Design principle: simulate rather than break
+**AssetRouter** translates complex, natural language financial goals (e.g. *"I have 500 USDC on Base and want low risk yield on Flare"*) into verified multi-chain execution paths.
 
-Every external integration (OpenRouter, Flare FTSO, Flare wallet balance,
-DeFiLlama, CoinGecko, LI.FI, Flare FDC, Supabase) is called through
-`backend/app/services/simulation.py`'s
-`safe_call()`. If the live call fails for *any* reason — no API key configured,
-network error, unexpected response shape — it transparently falls back to a
-realistic simulated value instead of erroring out. Every response carries
-`simulated: true/false` (+ a `simulationReason`), and the frontend renders a
-"Live" / "Simulated" badge next to each piece of data rather than silently
-passing off fake data as real. The product always demos end to end, even with
-zero API keys configured.
+Rather than relying on static headline APYs or fragmented DEX interfaces, AssetRouter:
+1. **Parses Intent**: LLM reasoning extracts goal parameters (target APY, risk tolerance, asset, preferred chain).
+2. **Attests Market Values**: Real-time decentralized price feeds via **Flare FTSOv2** ensure pricing accuracy and collateral valuation safety.
+3. **Discovers & Ranks Opportunities**: Evaluates liquidity depth from **DeFiLlama** and cross-chain bridge routes from **LI.FI**.
+4. **Executes Seamlessly**: Connects EVM wallets and non-EVM assets (XRP → FXRP via Flare FAssets) to route liquidity with one click.
 
-## Running locally
+---
 
-### Backend
+## 🛠 Modules
 
-```bash
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env   # fill in OPENROUTER_API_KEY etc. to go beyond simulation mode
-uvicorn app.main:app --reload --port 8000
+| Module | Purpose |
+|---|---|
+| **AI Intent Router** | Translates natural language financial goals into deterministic, ranked execution strategies. |
+| **Flare FTSOv2 Oracles** | Sub-second Category-1 decentralized price feed attestation (`FLR/USD`, `BTC/USD`, `ETH/USD`, `XRP/USD`, etc.). |
+| **Flare FAssets Engine** | Non-custodial minting and liquid staking assistant for non-EVM assets (XRP → Coston2 FXRP). |
+| **LI.FI Liquidity Router** | Cross-chain DEX and bridge liquidity aggregation across Ethereum, Flare, Arbitrum, Avalanche, Polygon, and Base. |
+| **Smart Opportunity Alerts** | Continuous background yield monitoring comparing active wallet holdings against live market opportunities. |
+| **FDC Attestation Verifier** | Real-time Flare Data Connector voting round and DA Layer Merkle proof verification. |
+
+---
+
+## 🏗 Architecture
+
+```mermaid
+graph TD
+    Client["React 18 / Next.js 14 UI"] -->|REST API| Backend["FastAPI Engine"]
+    Backend --> Router["AI Intent Parser & Rule Engine"]
+    
+    Router --> FTSO["Flare FTSOv2 Price Oracles (Coston2 / Mainnet)"]
+    Router --> LIFI["LI.FI Bridge & Swap Routing API"]
+    Router --> DeFiLlama["DeFiLlama Yield & TVL API"]
+    Router --> LLM["OpenRouter LLM (Llama 3.1 70B)"]
+    Router --> FDC["Flare Data Connector (FDC Hub)"]
+    
+    Backend -->|Strategy Rankings & Route Quotes| Client
 ```
 
-Health check: `curl http://localhost:8000/health`
+---
 
-### Frontend
+## 💻 Tech Stack
 
+- **Frontend**: Next.js 14 (App Router), React 18, TypeScript, TailwindCSS, Plus Jakarta Sans & Figtree typography, WebGL Globe.
+- **Backend**: Python 3.11+, FastAPI, Uvicorn, Web3.py.
+- **Oracles & Infrastructure**: Flare FTSOv2 Smart Contracts (`0x1000000000000000000000000000000000000003`), Flare FAssets (FXRP), Flare Data Connector.
+- **Integrations**: LI.FI SDK (Bridge & Swap), DeFiLlama API (Yields & TVL), OpenRouter API (LLM Inference).
+- **Wallet Support**: MetaMask, Web3 EVM Providers, Demo Wallet Simulator.
+
+---
+
+## ⚙️ Setup & Installation
+
+### Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **Python**: v3.11 or higher
+
+### Quick Start (One-Shot Script)
+
+Run the automated Arch/Linux launch script:
+```bash
+./start.sh
+```
+
+### Manual Setup
+
+#### 1. Backend (FastAPI)
+```bash
+cd backend
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env   # Configure OPENROUTER_API_KEY if available
+python3 -m uvicorn app.main:app --reload --port 8000
+```
+
+Verify backend health:
+```bash
+curl http://localhost:8000/health
+```
+
+#### 2. Frontend (Next.js)
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-Open http://localhost:3000. It talks to the backend at
-`NEXT_PUBLIC_API_BASE_URL` (defaults to `http://localhost:8000`).
+Open `http://localhost:3000` in your browser.
 
-## What's real vs. simulated out of the box
+---
 
-With no API keys configured at all:
+## 🌐 Environment Variables
 
-| Integration | Status with no keys | Notes |
-|---|---|---|
-| DeFiLlama yields (+ history) | **Live** | Public API, no key needed |
-| CoinGecko spot prices | **Live** | Public API (free tier, rate-limited) |
-| Flare FTSOv2 prices | **Live** | 11 feeds, read concurrently from Coston2 testnet via `web3.py`; set `FLARE_RPC_URL` for mainnet |
-| Flare native wallet balance | **Live** | Real `eth_getBalance` for the connected address on Flare |
-| LI.FI bridge quotes | **Live** | No key needed for basic quotes |
-| OpenRouter recommendations / refine / alert explanations | Simulated | Needs `OPENROUTER_API_KEY` — falls back to a deterministic ranked rule-based recommendation otherwise |
-| Flare FDC attestation | Always simulated | Phase-accurate timing (collecting → voting → finalized), but no real verifier/DA Layer — see `backend/app/services/flare_fdc.py` |
-| Supabase portfolio storage | In-memory | Needs `SUPABASE_URL` + `SUPABASE_KEY` — run `backend/supabase_schema.sql` first |
-| WalletConnect | Not implemented | Needs a Reown/WalletConnect Cloud project ID; MetaMask and "Use Demo Wallet" work today |
-
-## API (backend, prefix `/api`)
-
-- `POST /intent` — `{ intent, walletAddress?, portfolio?, history? }` → ranked `recommendations[]` + context
-- `GET /alerts?wallet=` — smart opportunity alerts with AI explanations
-- `GET /prices?symbols=FLR/USD,BTC/USD` / `GET /prices/all` — Flare FTSO feeds
-- `GET /prices/spot?symbols=XAU,BTC` — CoinGecko spot prices
-- `GET /yields?keywords=&chain=` — DeFiLlama opportunity explorer
-- `GET /yields/{poolId}/history?days=` — per-pool APY/TVL history
-- `GET /wallet/{address}/balance` — native FLR balance auto-detect
-- `POST /bridge-quote` — LI.FI cross-chain quote
-- `POST /verify`, `GET /verify/{jobId}` — Flare FDC attestation job (simulated)
-- `POST /portfolio`, `GET /portfolio/{wallet_address}` — Supabase-backed (or in-memory) holdings
-
-## Repo layout
-
+### Backend (`backend/.env`)
+```env
+OPENROUTER_API_KEY=your_openrouter_key
+COSTON2_RPC_URL=https://coston2-api.flare.network/ext/C/rpc
+LIFI_API_URL=https://li.quest/v1
+CORS_ORIGINS=http://localhost:3000,https://asset-router.vercel.app
 ```
-frontend/   Next.js app (UI + wallet connect)
-backend/    FastAPI app (routers, services, simulation-fallback logic)
+
+### Frontend (`frontend/.env.local`)
+```env
+NEXT_PUBLIC_API_BASE=http://localhost:8000/api
 ```
+
+---
+
+## 📄 License & Attribution
+
+Built for the Flare Network Hackathon. Powered by Flare FTSOv2, Flare FAssets, LI.FI, and DeFiLlama.

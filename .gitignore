@@ -16,5 +16,12 @@ frontend/next-env.d.ts
 
 .DS_Store
 
+# Documentation & Prompt Scratch Files
+flow.txt
+landing page.txt
+landing_page.txt
+landing-page.txt
+style-prompt.txt
+
 # Claude Code session-local state (not project content)
 .claude/
