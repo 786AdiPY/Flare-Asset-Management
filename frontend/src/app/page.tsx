@@ -163,11 +163,11 @@ export default function Home() {
     setCurrentStep(walletAddress ? 3 : 1);
   }
 
-  // Check URL query parameter on mount for view=app
+  // Check URL query parameter on mount for view=app or intent
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("view") === "app") {
+      if (params.get("view") === "app" || params.get("intent")) {
         setView("app");
       }
     }

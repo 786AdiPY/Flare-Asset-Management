@@ -87,7 +87,7 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
     } else if (alert.asset === "FLR") {
       promptText = "Liquid stake my 5000 unallocated FLR into Firelight on Flare for 11.36% APY";
     }
-    router.push(`/?intent=${encodeURIComponent(promptText)}`);
+    router.push(`/?view=app&intent=${encodeURIComponent(promptText)}`);
   }
 
   return (
