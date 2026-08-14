@@ -11,11 +11,16 @@ import type {
   YieldsResponse,
 } from "./types";
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_API_BASE ||
-  "http://localhost:8000"
-).replace(/\/$/, "");
+const getApiBase = (): string => {
+  const envBase = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE;
+  if (envBase) return envBase.replace(/\/$/, "");
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    return "https://asset-router-backend.onrender.com";
+  }
+  return "http://localhost:8000";
+};
+
+const API_BASE = getApiBase();
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
