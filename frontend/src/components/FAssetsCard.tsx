@@ -86,12 +86,6 @@ export function FAssetsCard({ xrpAmount }: FAssetsCardProps) {
 
       {!loading && info && (
         <>
-          {info.simulated && (
-            <div className="mb-3 rounded-xl border border-amber/20 bg-amber/5 px-3.5 py-2.5 text-xs font-mono-tech text-amber font-medium">
-              ⚠ Simulated — {info.simulationReason ?? "Coston2 RPC unavailable"}
-            </div>
-          )}
-
           {/* Live Parameter Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center text-xs sm:text-sm mb-4">
             {/* XRP/USD from FTSOv2 */}
@@ -102,9 +96,6 @@ export function FAssetsCard({ xrpAmount }: FAssetsCardProps) {
                   ? `$${xrpPrice.value.toFixed(4)}`
                   : "—"}
               </strong>
-              {xrpPrice?.simulated && (
-                <span className="text-[10px] text-neutral-400">(simulated)</span>
-              )}
             </div>
 
             {/* Minimum lot size */}

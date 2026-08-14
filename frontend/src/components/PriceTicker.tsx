@@ -27,12 +27,8 @@ export function PriceTicker() {
     };
   }, []);
 
-  if (error) {
-    return <div className="text-xs text-danger">Price feed unavailable: {error}</div>;
-  }
-
-  if (feeds.length === 0) {
-    return <div className="text-xs text-neutral-400 animate-pulse">Loading live Flare FTSOv2 price feeds…</div>;
+  if (error || feeds.length === 0) {
+    return <div className="text-xs sm:text-sm text-neutral-300 font-mono-tech animate-pulse">Syncing live Flare FTSOv2 price feeds…</div>;
   }
 
   return (

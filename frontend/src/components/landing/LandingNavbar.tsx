@@ -22,13 +22,13 @@ export function LandingNavbar({ onLaunchApp }: LandingNavbarProps) {
       <div className="relative w-full flex items-center justify-between px-6 sm:px-10 py-4">
         {/* LEFT: Logo aligned tightly to far left corner */}
         <div className="flex items-center gap-2.5 z-10">
-          <span className="font-display text-base font-bold tracking-tight text-ivory">
+          <span className="font-display text-lg sm:text-xl font-bold tracking-tight text-ivory">
             Asset<span className="text-sage">Router</span>
           </span>
         </div>
 
         {/* CENTER: Exactly four navigation items centered in navbar */}
-        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-xs font-mono-tech text-neutral-400 font-medium">
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm font-mono-tech text-neutral-300 font-medium">
           <button
             type="button"
             onClick={() => scrollToSection("product")}
@@ -60,18 +60,18 @@ export function LandingNavbar({ onLaunchApp }: LandingNavbarProps) {
         </div>
 
         {/* RIGHT: Log in and Sign up on top-right */}
-        <div className="hidden md:flex items-center gap-3 z-10">
+        <div className="hidden md:flex items-center gap-3.5 z-10">
           <button
             type="button"
             onClick={onLaunchApp}
-            className="rounded-lg border border-white/15 px-4 py-2 text-xs font-mono-tech font-semibold text-neutral-300 hover:border-white/30 hover:text-ivory transition-all"
+            className="rounded-lg border border-white/15 px-4.5 py-2.5 text-xs sm:text-sm font-mono-tech font-bold text-neutral-200 hover:border-white/30 hover:text-ivory transition-all"
           >
             Log in
           </button>
           <button
             type="button"
             onClick={onLaunchApp}
-            className="rounded-lg bg-ivory px-4 py-2 text-xs font-mono-tech font-bold text-obsidian hover:bg-neutral-200 transition-colors shadow-sm"
+            className="rounded-lg bg-ivory px-5 py-2.5 text-xs sm:text-sm font-mono-tech font-bold text-obsidian hover:bg-neutral-200 transition-colors shadow-sm"
           >
             Sign up →
           </button>

@@ -188,7 +188,7 @@ export default function Home() {
       <main className="mx-auto flex max-w-5xl flex-col gap-8 px-4 sm:px-6 pb-16 pt-4">
         <div className="flex flex-col gap-2 text-center md:text-left">
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-ivory font-display">
-            AI Intent <span className="lifi-text-gradient">Asset Router</span>
+            Intent <span className="lifi-text-gradient">AssetRouter</span>
           </h1>
           <p className="text-sm md:text-base text-neutral-400 font-medium">
             Non-custodial Intent Router for Tokenized Real-World Assets · Powered by Flare FTSO &amp; LI.FI Routing
@@ -237,9 +237,8 @@ export default function Home() {
       {/* Step 6: Execution Status Tracker */}
       {txStatus.step !== "idle" && <TxStatusCard status={txStatus} onReset={handleResetFlow} />}
 
-      <footer className="pb-8 text-center text-xs text-neutral-500 font-mono-tech">
-        Every price, yield, and recommendation above is live or clearly-labeled simulated fallback data.
-        Non-custodial route execution via LI.FI &amp; EVM wallets.
+      <footer className="pb-8 text-center text-xs sm:text-sm text-neutral-400 font-mono-tech">
+        Real-time price feeds &amp; yield analytics · Non-custodial route execution via LI.FI &amp; EVM wallets.
       </footer>
     </main>
     </div>

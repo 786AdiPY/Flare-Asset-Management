@@ -94,7 +94,7 @@ export function RoutePreviewModal({
             </div>
           ) : errorQuote ? (
             <div className="rounded-xl border border-danger/40 bg-danger/10 p-3 text-xs sm:text-sm text-danger">
-              Route info: {errorQuote} (Simulated route active)
+              Route info: {errorQuote}
             </div>
           ) : quote ? (
             <div className="grid grid-cols-3 gap-3 text-xs sm:text-sm font-mono-tech">

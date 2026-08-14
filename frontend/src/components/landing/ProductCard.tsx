@@ -64,15 +64,15 @@ export function ProductCard({ icon, title, description, tags, accent = "sage", i
         {icon}
       </div>
 
-      <h3 className="relative text-xl font-bold text-ivory">{title}</h3>
-      <p className="relative text-xs text-neutral-300 leading-relaxed font-sans">{description}</p>
+      <h3 className="relative text-xl sm:text-2xl font-bold text-ivory">{title}</h3>
+      <p className="relative text-xs sm:text-sm text-neutral-200 leading-relaxed font-sans font-normal">{description}</p>
 
       {tags && tags.length > 0 && (
-        <div className="relative flex flex-wrap gap-1.5 pt-1 opacity-0 -translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 motion-reduce:opacity-100 motion-reduce:translate-y-0">
+        <div className="relative flex flex-wrap gap-2 pt-1 opacity-0 -translate-y-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 motion-reduce:opacity-100 motion-reduce:translate-y-0">
           {tags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono-tech tracking-wide text-neutral-400"
+              className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-mono-tech font-medium tracking-wide text-neutral-200"
             >
               {tag}
             </span>

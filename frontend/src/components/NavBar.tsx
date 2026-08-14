@@ -43,8 +43,8 @@ export function NavBar({ onRouterClick, onLandingClick }: NavBarProps) {
             onClick={handleLandingClick}
             className="flex items-center gap-2.5 group"
           >
-            <span className="text-base font-bold tracking-tight text-ivory group-hover:text-white transition-colors font-display">
-              AI-Asset <span className="text-sage">Router</span>
+            <span className="text-lg font-bold tracking-tight text-ivory group-hover:text-white transition-colors font-display">
+              Asset<span className="text-sage">Router</span>
             </span>
           </Link>
 

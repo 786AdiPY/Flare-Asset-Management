@@ -33,7 +33,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
         </h1>
 
         {/* Short Subheading Description */}
-        <p className="mt-6 max-w-2xl text-base sm:text-lg text-neutral-300 font-medium leading-relaxed">
+        <p className="mt-6 max-w-3xl text-lg sm:text-xl text-neutral-300 font-medium leading-relaxed">
           AssetRouter understands your goal, discovers opportunities across chains, and helps you choose the best path for your assets.
         </p>
 
@@ -42,7 +42,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           <button
             type="button"
             onClick={onLaunchApp}
-            className="rounded-xl bg-ivory px-8 py-3.5 text-sm font-mono-tech font-bold text-obsidian shadow-lg hover:bg-neutral-200 transition-all hover:scale-105"
+            className="rounded-xl bg-ivory px-9 py-4 text-base font-mono-tech font-bold text-obsidian shadow-lg hover:bg-neutral-200 transition-all hover:scale-105"
           >
             Launch AssetRouter →
           </button>
@@ -64,14 +64,14 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
                 }
               }, 300);
             }}
-            className="rounded-xl border border-amber/40 bg-amber/10 px-8 py-3.5 text-sm font-mono-tech font-medium text-amber hover:border-amber/60 hover:bg-amber/20 transition-colors"
+            className="rounded-xl border border-amber/40 bg-amber/10 px-9 py-4 text-base font-mono-tech font-bold text-amber hover:border-amber/60 hover:bg-amber/20 transition-colors"
           >
             ⚡ Have XRP? Explore Flare →
           </button>
           <button
             type="button"
             onClick={() => scrollToSection("how-it-works")}
-            className="rounded-xl border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-mono-tech font-medium text-ivory hover:border-white/40 hover:bg-white/10 transition-colors"
+            className="rounded-xl border border-white/20 bg-white/5 px-9 py-4 text-base font-mono-tech font-bold text-ivory hover:border-white/40 hover:bg-white/10 transition-colors"
           >
             See how it works ↓
           </button>
@@ -89,7 +89,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           <h2 className="text-3xl sm:text-5xl font-bold tracking-tight text-ivory">
             Institutional asset routing engine
           </h2>
-          <p className="max-w-xl text-sm text-neutral-400">
+          <p className="max-w-2xl text-base sm:text-lg text-neutral-300 font-medium leading-relaxed">
             Translating complex natural language financial goals into verified multi-chain execution paths.
           </p>
         </div>
@@ -213,7 +213,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
           <button
             type="button"
             onClick={onLaunchApp}
-            className="rounded-xl bg-ivory px-9 py-4 text-base font-mono-tech font-bold text-obsidian shadow-2xl hover:bg-neutral-200 transition-all hover:scale-105"
+            className="rounded-xl bg-ivory px-10 py-4.5 text-lg font-mono-tech font-bold text-obsidian shadow-2xl hover:bg-neutral-200 transition-all hover:scale-105"
           >
             Launch AssetRouter →
           </button>
@@ -221,7 +221,7 @@ export function LandingPage({ onLaunchApp }: LandingPageProps) {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/10 py-8 text-center text-xs text-neutral-400 font-mono-tech">
+      <footer className="border-t border-white/10 py-8 text-center text-sm font-medium text-neutral-300 font-mono-tech">
         <p>© 2026 AssetRouter · Web3 Infrastructure Engine</p>
       </footer>
     </div>

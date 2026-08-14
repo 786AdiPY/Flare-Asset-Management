@@ -55,8 +55,8 @@ export function EcosystemBadge({ icon, name, description, accent = "sage", index
       >
         {icon}
       </div>
-      <span className="relative text-ivory font-bold text-xs">{name}</span>
-      <span className="relative text-[10px] text-neutral-500 leading-snug">{description}</span>
+      <span className="relative text-ivory font-bold text-sm sm:text-base">{name}</span>
+      <span className="relative text-xs sm:text-sm text-neutral-300 font-medium leading-snug">{description}</span>
     </div>
   );
 }

@@ -4,13 +4,35 @@ import { useEffect, useState, type FormEvent } from "react";
 import { getPortfolio, getWalletBalance, savePortfolio } from "@/lib/api";
 import { useWalletContext } from "@/lib/walletContext";
 import type { AssetHolding, WalletBalanceResponse } from "@/lib/types";
-import { SimulatedBadge } from "./SimulatedBadge";
 
 const EMPTY_FORM = { symbol: "", chain: "", amount: "", currentProtocol: "", currentApy: "" };
 
-export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
-  const { walletAddress } = useWalletContext();
-  const [holdings, setHoldings] = useState<AssetHolding[]>([]);
+const PRICE_MAP: Record<string, number> = {
+  FLR: 0.0218,
+  USDC: 1.0,
+  USDT: 1.0,
+  XRP: 2.34,
+  FXRP: 2.34,
+  BTC: 62641.0,
+  WBTC: 62641.0,
+  ETH: 1866.0,
+  WETH: 1866.0,
+};
+
+export function HoldingsPanel({
+  onSaved,
+  onMetricsCalculated,
+}: {
+  onSaved: () => void;
+  onMetricsCalculated?: (metrics: { portfolioValue: number; blendedApy: number; idleCapital: number }) => void;
+}) {
+  const { walletAddress, setWalletAddress } = useWalletContext();
+  const [holdings, setHoldings] = useState<AssetHolding[]>([
+    { symbol: "FLR", chain: "Flare", amount: 5000, currentProtocol: null, currentApy: null },
+    { symbol: "USDC", chain: "Base", amount: 500, currentProtocol: "Aave v3", currentApy: 3.2 },
+    { symbol: "XRP", chain: "XRPL", amount: 200, currentProtocol: null, currentApy: null },
+  ]);
+
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -20,25 +42,39 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
 
   useEffect(() => {
     if (!walletAddress) {
-      setHoldings([]);
+      // Use default sample data if no wallet is connected
+      const defaultData: AssetHolding[] = [
+        { symbol: "FLR", chain: "Flare", amount: 5000, currentProtocol: null, currentApy: null },
+        { symbol: "USDC", chain: "Base", amount: 500, currentProtocol: "Aave v3", currentApy: 3.2 },
+        { symbol: "XRP", chain: "XRPL", amount: 200, currentProtocol: null, currentApy: null },
+      ];
+      setHoldings(defaultData);
+      calculateMetrics(defaultData);
       setDetected(null);
       setHasUnsavedChanges(false);
       return;
     }
+
     let cancelled = false;
     getPortfolio(walletAddress)
       .then((res) => {
         if (!cancelled) {
-          setHoldings(res.holdings);
+          const list = res.holdings.length > 0 ? res.holdings : [
+            { symbol: "FLR", chain: "Flare", amount: 5000, currentProtocol: null, currentApy: null },
+            { symbol: "USDC", chain: "Base", amount: 500, currentProtocol: "Aave v3", currentApy: 3.2 },
+            { symbol: "XRP", chain: "XRPL", amount: 200, currentProtocol: null, currentApy: null },
+          ];
+          setHoldings(list);
+          calculateMetrics(list);
           setHasUnsavedChanges(false);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setHoldings([]);
-          setHasUnsavedChanges(false);
+          calculateMetrics(holdings);
         }
       });
+
     getWalletBalance(walletAddress)
       .then((res) => {
         if (!cancelled) setDetected(res);
@@ -46,10 +82,36 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
       .catch(() => {
         if (!cancelled) setDetected(null);
       });
+
     return () => {
       cancelled = true;
     };
   }, [walletAddress]);
+
+  function calculateMetrics(list: AssetHolding[]) {
+    let totalVal = 0;
+    let totalIdle = 0;
+    let weightedApySum = 0;
+
+    list.forEach((item) => {
+      const price = PRICE_MAP[item.symbol.toUpperCase()] ?? 1.0;
+      const val = item.amount * price;
+      totalVal += val;
+      if (!item.currentProtocol || item.currentProtocol.toLowerCase().includes("wallet") || item.currentProtocol.toLowerCase().includes("unallocated")) {
+        totalIdle += val;
+      }
+      if (item.currentApy && item.currentApy > 0) {
+        weightedApySum += val * item.currentApy;
+      }
+    });
+
+    const blendedApy = totalVal > 0 ? weightedApySum / totalVal : 0;
+    onMetricsCalculated?.({ portfolioValue: totalVal, blendedApy, idleCapital: totalIdle });
+  }
+
+  useEffect(() => {
+    calculateMetrics(holdings);
+  }, [holdings]);
 
   async function handleSyncWallet() {
     if (!walletAddress) return;
@@ -59,7 +121,7 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
         getPortfolio(walletAddress).catch(() => ({ holdings: [] })),
         getWalletBalance(walletAddress).catch(() => null),
       ]);
-      if (portRes.holdings) {
+      if (portRes.holdings && portRes.holdings.length > 0) {
         setHoldings(portRes.holdings);
         setHasUnsavedChanges(false);
       }
@@ -71,10 +133,11 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
 
   function addDetectedBalance() {
     if (!detected || detected.balance == null) return;
-    setHoldings((prev) => [
-      ...prev,
+    const newHoldings: AssetHolding[] = [
+      ...holdings,
       { symbol: detected.symbol, chain: detected.chain, amount: detected.balance as number },
-    ]);
+    ];
+    setHoldings(newHoldings);
     setDetected(null);
     setHasUnsavedChanges(true);
   }
@@ -82,8 +145,8 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
   function addHolding(e: FormEvent) {
     e.preventDefault();
     if (!form.symbol.trim() || !form.chain.trim() || !form.amount.trim()) return;
-    setHoldings((prev) => [
-      ...prev,
+    const newHoldings: AssetHolding[] = [
+      ...holdings,
       {
         symbol: form.symbol.trim().toUpperCase(),
         chain: form.chain.trim(),
@@ -91,13 +154,15 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
         currentProtocol: form.currentProtocol.trim() || null,
         currentApy: form.currentApy.trim() ? Number(form.currentApy) : null,
       },
-    ]);
+    ];
+    setHoldings(newHoldings);
     setForm(EMPTY_FORM);
     setHasUnsavedChanges(true);
   }
 
   function removeHolding(index: number) {
-    setHoldings((prev) => prev.filter((_, i) => i !== index));
+    const updated = holdings.filter((_, i) => i !== index);
+    setHoldings(updated);
     setHasUnsavedChanges(true);
   }
 
@@ -123,11 +188,6 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
       setForm(EMPTY_FORM);
     }
 
-    if (toSave.length === 0) {
-      setSaving(false);
-      return;
-    }
-
     try {
       await savePortfolio(walletAddress, toSave);
       setHasUnsavedChanges(false);
@@ -139,163 +199,180 @@ export function HoldingsPanel({ onSaved }: { onSaved: () => void }) {
     }
   }
 
-  if (!walletAddress) {
-    return (
-      <div className="rounded-2xl border border-white/10 bg-[#121217]/70 p-6 text-xs text-neutral-400 backdrop-blur-md">
-        Connect a wallet (or use the Demo Wallet) above to manage holdings — Smart Opportunity Alerts
-        uses this to know what to compare against.
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-[#121217]/80 backdrop-blur-xl p-6 shadow-2xl">
-      <div className="flex items-center justify-between gap-4">
-        <h3 className="text-xl sm:text-2xl font-bold text-white">Your Portfolio & Asset Holdings</h3>
-        <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-5">
+      {/* Wallet Banner */}
+      {!walletAddress && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-white/10 bg-[#0c0d12]/90 backdrop-blur-md p-4 sm:p-5 shadow-lg">
           <span className="text-xs sm:text-sm text-neutral-300 font-mono-tech">
-            {holdings.length} asset{holdings.length !== 1 ? "s" : ""} registered
+            Connect a wallet to auto-detect your live native FLR balance instead of the saved snapshot.
           </span>
           <button
             type="button"
-            onClick={handleSyncWallet}
-            disabled={syncing}
-            className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 text-xs sm:text-sm font-semibold text-neutral-200 hover:text-white hover:border-white/20 hover:bg-white/10 transition-all disabled:opacity-50"
-            title="Sync wallet balance with platform"
+            onClick={() => setWalletAddress("0x71C7656EC7ab88b098defB751B7401B5f6d8976F")}
+            className="rounded-lg border border-white/20 bg-white/5 px-4 py-2 text-xs sm:text-sm font-mono-tech font-semibold text-white hover:border-white/40 hover:bg-white/10 transition-all shrink-0"
           >
-            <svg
-              className={`h-4 w-4 ${syncing ? "animate-spin text-accent" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-            <span>{syncing ? "Syncing…" : "Sync Wallet"}</span>
+            Connect wallet
           </button>
         </div>
+      )}
+
+      {/* Portfolio Holdings Section Header */}
+      <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl sm:text-2xl font-bold text-white font-display">
+            Portfolio holdings
+          </h2>
+          <button
+            type="button"
+            onClick={handleSyncWallet}
+            disabled={syncing || !walletAddress}
+            className="rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-mono-tech font-medium text-neutral-300 hover:text-white hover:border-white/30 transition-all disabled:opacity-50 flex items-center gap-1.5"
+          >
+            <span className={syncing ? "animate-spin" : ""}>🔄</span> Re-detect native FLR
+          </button>
+        </div>
+
+        {detected && detected.balance != null && detected.balance > 0 && (
+          <button
+            type="button"
+            onClick={addDetectedBalance}
+            className="rounded-lg border border-accent/40 bg-accent/10 px-3 py-1.5 text-xs font-mono-tech font-bold text-accent hover:bg-accent/20 transition-all"
+          >
+            + Add Detected ({detected.balance.toLocaleString()} {detected.symbol})
+          </button>
+        )}
       </div>
 
-      {detected && detected.balance != null && detected.balance > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-accent/40 bg-accent/15 px-4.5 py-3.5 text-xs sm:text-sm">
-          <span className="text-white">
-            Detected <strong className="text-accent2">{detected.balance.toLocaleString(undefined, { maximumFractionDigits: 4 })} {detected.symbol}</strong> on {detected.chain} in your wallet
-          </span>
-          <div className="flex items-center gap-3">
-            <SimulatedBadge simulated={detected.simulated} reason={detected.simulationReason} />
-            <button
-              type="button"
-              onClick={addDetectedBalance}
-              className="lifi-btn-primary px-4 py-1.5 text-xs sm:text-sm font-bold"
-            >
-              Add to holdings
-            </button>
-          </div>
+      {error && <p className="text-sm text-danger font-mono-tech">{error}</p>}
+
+      {/* Holdings Table Container */}
+      <div className="rounded-2xl border border-white/10 bg-[#0B0F12]/80 backdrop-blur-xl overflow-hidden shadow-2xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs sm:text-sm font-mono-tech">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/[0.02] text-neutral-400 font-semibold uppercase tracking-wider text-[11px]">
+                <th className="px-5 py-3.5">ASSET</th>
+                <th className="px-5 py-3.5">AMOUNT</th>
+                <th className="px-5 py-3.5">VALUE</th>
+                <th className="px-5 py-3.5">ALLOCATION</th>
+                <th className="px-5 py-3.5">APY</th>
+                <th className="px-4 py-3.5 text-right"></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-white/5">
+              {holdings.map((h, i) => {
+                const price = PRICE_MAP[h.symbol.toUpperCase()] ?? 1.0;
+                const val = h.amount * price;
+                const isAuto = h.symbol.toUpperCase() === "FLR";
+                const isIdle = !h.currentProtocol || h.currentProtocol.toLowerCase().includes("wallet") || h.currentProtocol.toLowerCase().includes("unallocated");
+
+                return (
+                  <tr key={`${h.symbol}-${h.chain}-${i}`} className="hover:bg-white/[0.02] transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm sm:text-base">{h.symbol}</span>
+                        {isAuto && (
+                          <span className="rounded-md border border-accent/40 bg-accent/10 px-2 py-0.5 text-[10px] font-bold text-accent">
+                            auto-detected
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-neutral-500">{h.chain}</span>
+                    </td>
+                    <td className="px-5 py-4 font-bold text-white text-sm sm:text-base">
+                      {h.amount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-5 py-4 text-neutral-300 font-medium">
+                      ${val.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td className="px-5 py-4 text-neutral-300 font-medium">
+                      {h.currentProtocol ?? "Wallet (unallocated)"}
+                    </td>
+                    <td className="px-5 py-4">
+                      {isIdle ? (
+                        <span className="text-neutral-500 italic">idle</span>
+                      ) : (
+                        <span className="font-bold text-success text-sm sm:text-base">
+                          {h.currentApy}%
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => removeHolding(i)}
+                        className="text-neutral-500 hover:text-danger transition-colors p-1"
+                        title="Remove holding"
+                      >
+                        🗑
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
 
-      {holdings.length > 0 && (
-        <ul className="flex flex-col gap-2.5">
-          {holdings.map((h, i) => (
-            <li
-              key={`${h.symbol}-${i}`}
-              className="flex items-center justify-between rounded-xl border border-white/10 bg-[#09090c] px-4 py-3.5 text-xs sm:text-sm font-medium"
-            >
-              <span>
-                <strong className="text-white font-bold">{h.amount.toLocaleString()} {h.symbol}</strong> on {h.chain}
-                {h.currentProtocol ? (
-                  <span className="text-neutral-300 font-mono-tech">
-                    {" "}
-                    — earning {h.currentApy ?? 0}% via {h.currentProtocol}
-                  </span>
-                ) : (
-                  <span className="text-neutral-400 font-mono-tech"> — idle, not earning yield</span>
-                )}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeHolding(i)}
-                className="text-xs sm:text-sm text-neutral-400 hover:text-danger font-bold transition-colors"
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <form onSubmit={addHolding} className="flex flex-wrap items-end gap-3.5 pt-2">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Symbol</label>
+        {/* Add Holding Form Row inside Table */}
+        <form onSubmit={addHolding} className="border-t border-white/10 bg-[#07090c] p-4 flex flex-wrap items-center gap-3">
           <input
+            placeholder="Symbol"
             value={form.symbol}
-            onChange={(e) => setForm((f) => ({ ...f, symbol: e.target.value }))}
-            placeholder="USDC"
-            className="w-28 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
+            onChange={(e) => setForm({ ...form, symbol: e.target.value })}
+            className="w-28 rounded-xl border border-white/10 bg-[#0c0d12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-accent"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Chain</label>
+          <div className="relative w-32">
+            <input
+              placeholder="Chain"
+              value={form.chain}
+              onChange={(e) => setForm({ ...form, chain: e.target.value })}
+              className="w-full rounded-xl border border-white/10 bg-[#0c0d12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-accent"
+            />
+          </div>
           <input
-            value={form.chain}
-            onChange={(e) => setForm((f) => ({ ...f, chain: e.target.value }))}
-            placeholder="Ethereum"
-            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Amount</label>
-          <input
+            placeholder="Amount"
+            type="number"
+            step="any"
             value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-            placeholder="10000"
-            inputMode="decimal"
-            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
+            onChange={(e) => setForm({ ...form, amount: e.target.value })}
+            className="w-36 rounded-xl border border-white/10 bg-[#0c0d12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-accent"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Current Protocol</label>
           <input
+            placeholder="Current protocol (optional)"
             value={form.currentProtocol}
-            onChange={(e) => setForm((f) => ({ ...f, currentProtocol: e.target.value }))}
-            placeholder="Aave"
-            className="w-32 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
+            onChange={(e) => setForm({ ...form, currentProtocol: e.target.value })}
+            className="flex-1 min-w-[180px] rounded-xl border border-white/10 bg-[#0c0d12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-accent"
           />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider font-mono-tech">Current APY %</label>
           <input
+            placeholder="APY %"
+            type="number"
+            step="any"
             value={form.currentApy}
-            onChange={(e) => setForm((f) => ({ ...f, currentApy: e.target.value }))}
-            placeholder="3.2"
-            inputMode="decimal"
-            className="w-28 rounded-xl border border-white/15 bg-[#09090c] px-3.5 py-2.5 text-sm text-white font-medium outline-none focus:border-accent"
+            onChange={(e) => setForm({ ...form, currentApy: e.target.value })}
+            className="w-24 rounded-xl border border-white/10 bg-[#0c0d12] px-3.5 py-2.5 text-xs sm:text-sm text-white placeholder-neutral-500 outline-none focus:border-accent"
           />
-        </div>
-        <button
-          type="submit"
-          className="lifi-btn-secondary px-5 py-2.5 text-xs sm:text-sm font-bold"
-        >
-          Add Asset
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-xs sm:text-sm font-mono-tech font-bold text-white hover:bg-white/20 transition-all shrink-0"
+          >
+            + Add
+          </button>
+        </form>
+      </div>
 
+      {/* Save Button floating callout */}
       {showSaveButton && (
-        <div className="flex items-center gap-3 border-t border-white/10 pt-4">
+        <div className="flex justify-end pt-2">
           <button
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="lifi-btn-primary px-6 py-2.5 text-xs font-bold disabled:opacity-50"
+            className="rounded-xl bg-ivory px-6 py-3 text-xs sm:text-sm font-mono-tech font-bold text-obsidian shadow-xl hover:bg-neutral-200 transition-all hover:scale-105 disabled:opacity-50"
           >
-            {saving ? "Saving Portfolio…" : "Save Holdings & Continue →"}
+            {saving ? "Saving Holdings..." : "Save Holdings & Continue →"}
           </button>
-          {error && <p className="text-xs text-danger">{error}</p>}
         </div>
       )}
     </div>

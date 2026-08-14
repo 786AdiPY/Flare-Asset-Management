@@ -184,20 +184,20 @@ export function WorkflowNarrative() {
                 onClick={() =>
                   chapterRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" })
                 }
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors duration-300 ${
+                className={`flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-left transition-colors duration-300 ${
                   isActive ? "bg-white/5" : "hover:bg-white/[0.03]"
                 }`}
               >
                 <span
-                  className={`font-mono-tech text-[11px] font-bold transition-colors duration-300 ${
-                    isActive ? TONES[c.tone].text : "text-neutral-600"
+                  className={`font-mono-tech text-xs sm:text-sm font-bold transition-colors duration-300 ${
+                    isActive ? TONES[c.tone].text : "text-neutral-500"
                   }`}
                 >
                   {c.id}
                 </span>
                 <span
-                  className={`font-mono-tech text-[11px] font-bold uppercase tracking-wider transition-colors duration-300 ${
-                    isActive ? "text-ivory" : "text-neutral-600"
+                  className={`font-mono-tech text-xs sm:text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${
+                    isActive ? "text-ivory" : "text-neutral-500"
                   }`}
                 >
                   {c.eyebrow}
@@ -224,17 +224,17 @@ export function WorkflowNarrative() {
               <div className="flex-1 relative">
                 <span
                   aria-hidden
-                  className={`pointer-events-none absolute -top-8 -left-1 text-7xl font-black select-none transition-colors duration-700 ${t.ghost}`}
+                  className={`pointer-events-none absolute -top-8 -left-1 text-7xl sm:text-8xl font-black select-none transition-colors duration-700 ${t.ghost}`}
                 >
                   {c.id}
                 </span>
-                <span className={`relative block text-[11px] font-mono-tech font-bold uppercase tracking-widest mb-3 ${t.text}`}>
+                <span className={`relative block text-xs sm:text-sm font-mono-tech font-bold uppercase tracking-widest mb-3 ${t.text}`}>
                   {c.eyebrow}
                 </span>
                 <h3 className="relative text-2xl sm:text-3xl font-bold text-ivory tracking-tight mb-3 max-w-sm">
                   {c.headline}
                 </h3>
-                <p className="relative text-sm text-neutral-400 leading-relaxed max-w-sm">{c.narrative}</p>
+                <p className="relative text-sm sm:text-base text-neutral-300 leading-relaxed max-w-md">{c.narrative}</p>
               </div>
 
               <div className="flex flex-1 md:justify-center">
