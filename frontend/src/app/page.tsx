@@ -26,15 +26,8 @@ export default function Home() {
   const { walletAddress } = useWalletContext();
   const { sendTransaction } = useWallet();
 
-  const [view, setView] = useState<"landing" | "app">(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("view") === "app" || params.get("intent")) {
-        return "app";
-      }
-    }
-    return "landing";
-  });
+  const [mounted, setMounted] = useState(false);
+  const [view, setView] = useState<"landing" | "app">("landing");
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [history, setHistory] = useState<ConversationTurn[]>([]);
   const [result, setResult] = useState<IntentResponse | null>(null);
@@ -171,8 +164,9 @@ export default function Home() {
     setCurrentStep(walletAddress ? 3 : 1);
   }
 
-  // Check URL query parameter on mount for view=app or intent
+  // Set mounted and check URL query parameter on mount for view=app or intent
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("view") === "app" || params.get("intent")) {
@@ -180,6 +174,10 @@ export default function Home() {
       }
     }
   }, []);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-obsidian" />;
+  }
 
   if (view === "landing") {
     return <LandingPage onLaunchApp={() => setView("app")} />;
