@@ -155,19 +155,19 @@ function StrategyPickCard({
             </h4>
             <div className="flex flex-col gap-2 text-xs sm:text-sm font-mono-tech">
               <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                <span>✔</span> Meets target APY ({apyText} ≥ 8.00%)
+                <span className="font-bold">✓</span> Meets target APY ({apyText} ≥ 8.00%)
               </div>
               <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                <span>✔</span> Matches {rec.riskLevel} risk preference
+                <span className="font-bold">✓</span> Matches {rec.riskLevel} risk preference
               </div>
               <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                <span>✔</span> Fits liquidity requirement ({formattedTvl} TVL)
+                <span className="font-bold">✓</span> Fits liquidity requirement ({formattedTvl} TVL)
               </div>
               <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                <span>✔</span> Low execution fee (0.30%)
+                <span className="font-bold">✓</span> Low execution fee (0.30%)
               </div>
               <div className="flex items-center gap-2 text-emerald-400 font-medium">
-                <span>✔</span> Preferred chain ({rec.chain})
+                <span className="font-bold">✓</span> Preferred chain ({rec.chain})
               </div>
             </div>
             <p className="text-xs sm:text-sm text-neutral-300 font-sans leading-relaxed mt-1">

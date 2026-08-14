@@ -7,6 +7,11 @@ import { WalletProvider } from "@/lib/walletContext";
 export const metadata: Metadata = {
   title: "AssetRouter",
   description: "Intent Router for Tokenized Assets on Flare",
+  icons: {
+    icon: "/favicon.png",
+    shortcut: "/favicon.png",
+    apple: "/favicon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
