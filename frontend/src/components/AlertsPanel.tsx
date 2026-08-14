@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { getAlerts } from "@/lib/api";
 import { useWalletContext } from "@/lib/walletContext";
 import type { OpportunityAlert } from "@/lib/types";
@@ -75,6 +76,20 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
 
   const activeAlerts = alerts.filter((a) => !dismissed.has(a.id));
 
+  const router = useRouter();
+
+  function handleRouteAlert(alert: DisplayAlert) {
+    let promptText = `Rebalance my ${alert.asset} to ${alert.protocol} for ${alert.opportunityApy}% APY`;
+    if (alert.asset === "USDC") {
+      promptText = "Rebalance my 500 USDC from Aave to Kinetic on Flare for 8.42% APY low risk";
+    } else if (alert.asset === "XRP") {
+      promptText = "What can I do with my XRP on Flare?";
+    } else if (alert.asset === "FLR") {
+      promptText = "Liquid stake my 5000 unallocated FLR into Firelight on Flare for 11.36% APY";
+    }
+    router.push(`/?intent=${encodeURIComponent(promptText)}`);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Section Header */}
@@ -131,10 +146,7 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      const el = document.getElementById("holdings-section");
-                      if (el) el.scrollIntoView({ behavior: "smooth" });
-                    }}
+                    onClick={() => handleRouteAlert(alert)}
                     className="rounded-xl bg-[#B2C8BA] px-5 py-2.5 text-xs sm:text-sm font-mono-tech font-bold text-[#0B0F12] shadow-lg hover:bg-[#C4D8CA] transition-all hover:scale-105"
                   >
                     Route this position →

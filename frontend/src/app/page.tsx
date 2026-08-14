@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { LandingPage } from "@/components/landing/LandingPage";
 import { NavBar } from "@/components/NavBar";
 import { IntentForm } from "@/components/IntentForm";
@@ -207,7 +207,9 @@ export default function Home() {
             Describe your financial goal in plain language (e.g. &quot;I want low-risk passive income from my USDC&quot;)
           </p>
         </div>
-        <IntentForm history={history} onResult={handleIntentResult} />
+        <Suspense fallback={<div className="text-xs text-neutral-400 font-mono-tech">Loading router engine...</div>}>
+          <IntentForm history={history} onResult={handleIntentResult} />
+        </Suspense>
       </section>
 
       {/* Step 4: AI Strategy Recommendations */}

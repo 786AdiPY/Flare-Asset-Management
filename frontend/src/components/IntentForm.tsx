@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { postIntent } from "@/lib/api";
 import { useWalletContext } from "@/lib/walletContext";
 import type { ConversationTurn, IntentResponse } from "@/lib/types";
@@ -20,9 +21,22 @@ export function IntentForm({
   onResult: (userText: string, result: IntentResponse) => void;
 }) {
   const { walletAddress } = useWalletContext();
+  const searchParams = useSearchParams();
   const [intent, setIntent] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const queryIntent = searchParams?.get("intent");
+    if (queryIntent) {
+      setIntent(queryIntent);
+      setLoading(true);
+      postIntent({ intent: queryIntent, walletAddress, history: [] })
+        .then((res) => onResult(queryIntent, res))
+        .catch((err) => setError(err instanceof Error ? err.message : "Failed to get a recommendation"))
+        .finally(() => setLoading(false));
+    }
+  }, [searchParams]);
 
   const isRefining = history.length > 0;
 
