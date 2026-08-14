@@ -80,8 +80,8 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
       {/* Section Header */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-2 font-display">
-            <span>🔔</span> Goal-matched opportunities
+          <h2 className="text-xl sm:text-2xl font-bold text-white font-display">
+            Goal-matched opportunities
           </h2>
           <span className="text-xs sm:text-sm text-neutral-400 font-mono-tech">
             Only raised when a new pool materially clears your stated target inside your risk band.
@@ -151,8 +151,8 @@ export function AlertsPanel({ refreshToken = 0 }: { refreshToken?: number }) {
 
               {/* Right Column (Metric box) */}
               <div className="rounded-xl border border-white/10 bg-[#07090c] p-4 flex flex-col gap-2.5">
-                <div className="text-xs text-neutral-400 flex items-center gap-1.5">
-                  <span>📈</span> APY Improvement
+                <div className="text-xs text-neutral-400 font-semibold tracking-wider uppercase font-mono-tech">
+                  APY Improvement
                 </div>
                 <div className="text-2xl sm:text-3xl font-extrabold text-success">
                   +{alert.improvementApy.toFixed(2)}pp
