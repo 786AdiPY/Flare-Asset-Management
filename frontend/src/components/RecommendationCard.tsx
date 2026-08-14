@@ -98,9 +98,20 @@ function StrategyPickCard({
             {rec.riskLevel} Risk
           </span>
         </div>
-        <span className="text-xs sm:text-sm font-mono-tech text-neutral-400 font-medium">
-          score <strong className="text-white">{scoreNumber}</strong>/100
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs sm:text-sm font-mono-tech text-neutral-400 font-medium">
+            score <strong className="text-white">{scoreNumber}</strong>/100
+          </span>
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-white font-mono-tech transition-colors bg-white/5 border border-white/10 rounded-md px-2.5 py-1"
+            title="Collapse recommendation"
+          >
+            <span>Collapse</span>
+            <span className="text-xs">^</span>
+          </button>
+        </div>
       </div>
 
       {/* Main Protocol Title & APY Row */}
