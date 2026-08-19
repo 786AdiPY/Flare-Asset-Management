@@ -20,7 +20,7 @@ Rather than relying on static headline APYs or fragmented DEX interfaces, AssetR
 
 ## ✨ Core Features
 
-![AssetRouter core features](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_58%20AM.png)
+![AssetRouter core features](images/CoreFeatures.png)
 
 ---
 
@@ -55,11 +55,11 @@ graph TD
 
 ### AI Architecture
 
-![AssetRouter AI architecture](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_26%20AM.png)
+![AssetRouter AI architecture](images/Architectural%20Diagram.png)
 
 ### User Flow
 
-![AssetRouter user flow](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_47%20AM.png)
+![AssetRouter user flow](images/User%20Flow.png)
 
 ---
 
