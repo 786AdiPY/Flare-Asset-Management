@@ -1,6 +1,6 @@
 # 🚀 AssetRouter
 
-Live Demo: [AssetRouter App](http://localhost:3000)
+**Live demo:** [flare-asset-management-lemon.vercel.app](https://flare-asset-management-lemon.vercel.app/)
 
 > Non-custodial Intent Router for Tokenized Assets & Cross-Chain Yields — Powered by Flare FTSOv2 Decentralized Oracles, Flare FAssets (FXRP), LI.FI Liquidity Aggregation, and DeFiLlama Analytics.
 
@@ -15,6 +15,12 @@ Rather than relying on static headline APYs or fragmented DEX interfaces, AssetR
 2. **Attests Market Values**: Real-time decentralized price feeds via **Flare FTSOv2** ensure pricing accuracy and collateral valuation safety.
 3. **Discovers & Ranks Opportunities**: Evaluates liquidity depth from **DeFiLlama** and cross-chain bridge routes from **LI.FI**.
 4. **Executes Seamlessly**: Connects EVM wallets and non-EVM assets (XRP → FXRP via Flare FAssets) to route liquidity with one click.
+
+---
+
+## ✨ Core Features
+
+![AssetRouter core features](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_58%20AM.png)
 
 ---
 
@@ -46,6 +52,14 @@ graph TD
     
     Backend -->|Strategy Rankings & Route Quotes| Client
 ```
+
+### AI Architecture
+
+![AssetRouter AI architecture](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_26%20AM.png)
+
+### User Flow
+
+![AssetRouter user flow](images/ChatGPT%20Image%20Aug%2019%2C%202026%2C%2009_53_47%20AM.png)
 
 ---
 
